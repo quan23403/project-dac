@@ -37,6 +37,4 @@ public class UserController {
         ResCreateUserDTO newUser = this.userService.create(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
-
-
 }
