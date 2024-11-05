@@ -1,9 +1,15 @@
 package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.domain.User;
+import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.request.AuthenticationRequest;
+import com.example.ProjectDAC.response.ResCreateUserDTO;
+import com.example.ProjectDAC.response.ResLoginDTO;
 import com.example.ProjectDAC.service.UserService;
 import com.example.ProjectDAC.util.JwtUtils;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -28,7 +34,7 @@ public class AuthenticationController {
         this.passwordEncoder = passwordEncoder;
     }
     @PostMapping("/log-in")
-    public String authenticate(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<ResLoginDTO> authenticate(@RequestBody AuthenticationRequest request) {
         // Nap input gom username/pass
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 request.getEmail(), request.getPassword());
@@ -40,8 +46,25 @@ public class AuthenticationController {
 
         User user = userService.getUserByEmail(request.getEmail());
         String token = jwtUtils.generateToken(user);
-
+        ResLoginDTO result = new ResLoginDTO();
+        result.setId(user.getId());
+        result.setEmail(user.getEmail());
+        result.setFirstName(user.getFirstName());
+        result.setLastName(user.getLastName());
+        result.setToken(token);
         System.out.println("Log in success");
-        return token;
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ResCreateUserDTO> createUser(@Valid @RequestBody User user) throws IdInvalidException {
+        boolean isEmailExist = this.userService.isEmailExist(user.getEmail());
+        if(isEmailExist) {
+            throw new IdInvalidException("Email da ton tai" );
+        }
+        String hashPassword = this.passwordEncoder.encode(user.getPassword());
+        user.setPassword(hashPassword);
+        ResCreateUserDTO newUser = this.userService.create(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 }
