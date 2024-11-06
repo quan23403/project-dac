@@ -51,9 +51,7 @@
                 >
                   Forgot Password?
                 </v-btn>
-                <router-link :to="{ name: 'Register', params: '' }"
-                  >Sign Up</router-link
-                >
+                <v-btn variant="text"> Sign Up </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
