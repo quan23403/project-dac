@@ -3,6 +3,7 @@ package com.example.ProjectDAC.controller;
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.request.AuthenticationRequest;
+import com.example.ProjectDAC.response.ErrorResponse;
 import com.example.ProjectDAC.response.ResLoginDTO;
 import com.example.ProjectDAC.response.ResUserDTO;
 import com.example.ProjectDAC.service.UserService;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,27 +36,50 @@ public class AuthenticationController {
         this.passwordEncoder = passwordEncoder;
     }
     @PostMapping("/log-in")
-    public ResponseEntity<ResLoginDTO> authenticate(@RequestBody AuthenticationRequest request) {
-        // Nap input gom username/pass
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                request.getEmail(), request.getPassword());
+    public ResponseEntity<Object> authenticate(@RequestBody AuthenticationRequest request) {
+        try {
+            // Create the authentication token from the provided email and password
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                    request.getEmail(), request.getPassword());
 
-        // Xac thuc nguoi dung
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            // Authenticate the user using the authentication manager
+            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            // Set the authentication context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user = userService.getUserByEmail(request.getEmail());
-        String token = jwtUtils.generateToken(user);
-        ResLoginDTO result = new ResLoginDTO();
-        result.setId(user.getId());
-        result.setEmail(user.getEmail());
-        result.setFirstName(user.getFirstName());
-        result.setLastName(user.getLastName());
-        result.setToken(token);
-        System.out.println("Log in success");
-        System.out.println(jwtUtils.getUsernameFromToken(token));
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+            // Retrieve user data from the database
+            User user = userService.getUserByEmail(request.getEmail());
+
+            // Generate JWT token
+            String token = jwtUtils.generateToken(user);
+
+            // Prepare the response DTO with user details and token
+            ResLoginDTO result = new ResLoginDTO();
+            result.setId(user.getId());
+            result.setEmail(user.getEmail());
+            result.setFirstName(user.getFirstName());
+            result.setLastName(user.getLastName());
+            result.setToken(token);
+
+            // Log success information
+            System.out.println("Log in success");
+            System.out.println(jwtUtils.getUsernameFromToken(token));
+
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (AuthenticationException e) {
+            // Catch authentication failure (e.g., wrong credentials)
+            System.out.println("Authentication failed: " + e.getMessage());
+
+            // Return error response with status 401 and a failure message
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Authentication failed", "Invalid email or password"));
+        } catch (Exception e) {
+            // Catch any other unexpected errors
+            System.out.println("Error during authentication: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Internal server error", "Something went wrong"));
+        }
     }
 
     @PostMapping("/register")
