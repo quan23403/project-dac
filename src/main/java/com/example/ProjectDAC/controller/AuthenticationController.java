@@ -3,8 +3,8 @@ package com.example.ProjectDAC.controller;
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.request.AuthenticationRequest;
-import com.example.ProjectDAC.response.ResCreateUserDTO;
 import com.example.ProjectDAC.response.ResLoginDTO;
+import com.example.ProjectDAC.response.ResUserDTO;
 import com.example.ProjectDAC.service.UserService;
 import com.example.ProjectDAC.util.JwtUtils;
 import jakarta.validation.Valid;
@@ -53,18 +53,19 @@ public class AuthenticationController {
         result.setLastName(user.getLastName());
         result.setToken(token);
         System.out.println("Log in success");
+        System.out.println(jwtUtils.getUsernameFromToken(token));
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResCreateUserDTO> createUser(@Valid @RequestBody User user) throws IdInvalidException {
+    public ResponseEntity<ResUserDTO> createUser(@Valid @RequestBody User user) throws IdInvalidException {
         boolean isEmailExist = this.userService.isEmailExist(user.getEmail());
         if(isEmailExist) {
             throw new IdInvalidException("Email da ton tai" );
         }
         String hashPassword = this.passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);
-        ResCreateUserDTO newUser = this.userService.create(user);
+        ResUserDTO newUser = this.userService.create(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 }

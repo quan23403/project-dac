@@ -1,35 +1,30 @@
 package com.example.ProjectDAC.util;
 
 import com.example.ProjectDAC.domain.User;
-import com.example.ProjectDAC.repository.UserRepository;
+import com.example.ProjectDAC.service.UserService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.StringJoiner;
 
 @Service
 public class JwtUtils {
-    private UserRepository userRepository;
+    private UserService userService;
     private JwtDecoder jwtDecoder;
 
     @Value("${jwt.signerKey}")
     private String SIGNER_KEY;
-    public JwtUtils(UserRepository userRepository, JwtDecoder jwtDecoder) {
-        this.userRepository = userRepository;
+    public JwtUtils(UserService userService, JwtDecoder jwtDecoder) {
+        this.userService = userService;
         this.jwtDecoder = jwtDecoder;
     }
 
@@ -42,7 +37,7 @@ public class JwtUtils {
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
 //                .claim("scope", buildScope(user))
-                .claim("user", user)
+                .claim("user", this.userService.convertUserToResLoginDTO(user))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -70,6 +65,6 @@ public class JwtUtils {
 
     public String getUsernameFromToken(String token) {
         Jwt jwt = decodeToken(token);
-        return jwt.getClaimAsString("sub"); // Trích xuất thông tin, ví dụ là username
+        return jwt.getClaimAsString("user"); // Trích xuất thông tin, ví dụ là username
     }
 }
