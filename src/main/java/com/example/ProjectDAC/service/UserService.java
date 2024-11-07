@@ -2,7 +2,8 @@ package com.example.ProjectDAC.service;
 
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.repository.UserRepository;
-import com.example.ProjectDAC.response.ResCreateUserDTO;
+import com.example.ProjectDAC.response.ResLoginDTO;
+import com.example.ProjectDAC.response.ResUserDTO;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,15 +12,10 @@ public class UserService {
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-    public ResCreateUserDTO create(User user){
+    public ResUserDTO create(User user){
         User newUser = this.userRepository.save(user);
 
-        ResCreateUserDTO resCreateUserDTO = new ResCreateUserDTO();
-        resCreateUserDTO.setId(newUser.getId());
-        resCreateUserDTO.setEmail(newUser.getEmail());
-        resCreateUserDTO.setFirstName(newUser.getFirstName());
-        resCreateUserDTO.setLastName(newUser.getLastName());
-        return resCreateUserDTO;
+        return this.convertUserToResLoginDTO(newUser);
     }
 
     public boolean isEmailExist(String email) {
@@ -28,5 +24,16 @@ public class UserService {
 
     public User getUserByEmail(String email) {
         return this.userRepository.findByEmail(email);
+    }
+
+    public ResUserDTO convertUserToResLoginDTO(User user) {
+        ResUserDTO resUserDTO = new ResUserDTO();
+        resUserDTO.setId(user.getId());
+        resUserDTO.setEmail(user.getEmail());
+        resUserDTO.setFirstName(user.getFirstName());
+        resUserDTO.setLastName(user.getLastName());
+        resUserDTO.setCreatedAt(user.getCreatedAt());
+        resUserDTO.setUpdatedAt(user.getUpdatedAt());
+        return resUserDTO;
     }
 }
