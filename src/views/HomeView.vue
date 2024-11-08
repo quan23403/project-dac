@@ -1,3 +1,12 @@
 <template>
-  <h1>Home Page</h1>
+  <HomeComponent></HomeComponent>
 </template>
+
+<script>
+import HomeComponent from "@/components/homepage/HomeComponent.vue";
+export default {
+  components: {
+    HomeComponent,
+  },
+};
+</script>
