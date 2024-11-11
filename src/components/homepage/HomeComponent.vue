@@ -1,10 +1,10 @@
 <template>
   <v-app>
-    <SideNavigation :drawer="drawer" :items="navigationItems" />
     <TopBar @toggle-drawer="toggleDrawer" />
+    <SideNavigation :drawer="drawer" :items="navigationItems" />
     <v-main>
       <v-container fluid>
-        <UserTable />
+        <CategoryTable />
       </v-container>
     </v-main>
   </v-app>
@@ -14,7 +14,7 @@
 import { ref } from "vue";
 import SideNavigation from "./SideNavigation.vue";
 import TopBar from "./TopBar.vue";
-import UserTable from "./CategoryTable.vue";
+import CategoryTable from "./CategoryTable.vue";
 
 const drawer = ref(null);
 
@@ -29,5 +29,6 @@ const navigationItems = [
 
 const toggleDrawer = () => {
   drawer.value = !drawer.value;
+  console.log(drawer.value);
 };
 </script>

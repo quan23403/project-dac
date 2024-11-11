@@ -17,46 +17,84 @@
           <v-toolbar-title>Category Management</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-dialog v-model="dialog" max-width="500px">
-            <template v-slot:activator="{ props }">
-              <v-btn color="primary" dark class="mb-2" v-bind="props">
-                New Category
-              </v-btn>
-            </template>
+          <!-- New Category Dialog -->
+          <NewCategoryDialog @create-success="needReload = true" />
+
+          <v-dialog v-model="dialogEdit" max-width="500px">
             <v-card>
               <v-card-title>
-                <span class="text-h5">{{ formTitle }}</span>
+                <span class="text-h5">Edit Category</span>
               </v-card-title>
               <v-card-text>
-                <v-container>
-                  <v-row>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.name"
-                        label="Name"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.email"
-                        label="Email"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6" md="4">
-                      <v-text-field
-                        v-model="editedItem.role"
-                        label="Role"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-container>
+                <!-- Trường Name -->
+                <v-text-field
+                  v-model="editedItem.name"
+                  label="Name"
+                  required
+                ></v-text-field>
+
+                <!-- Trường Type Category -->
+                <v-select
+                  v-model="editedItem.typeCategory"
+                  :items="typeCategoryOptions"
+                  label="Type"
+                  required
+                ></v-select>
+
+                <!-- Trường Budget -->
+                <v-text-field
+                  v-model="editedItem.budget"
+                  label="Budget"
+                  type="number"
+                  required
+                ></v-text-field>
+
+                <!-- Trường Start Date -->
+                <v-date-input
+                  v-model="editedItem.startDate"
+                  label="Start Date"
+                  variant="outlined"
+                  persistent-placeholder
+                ></v-date-input>
+
+                <!-- Trường End Date -->
+                <v-date-input
+                  v-model="editedItem.endDate"
+                  label="End Date"
+                  variant="outlined"
+                  persistent-placeholder
+                ></v-date-input>
+
+                <!-- Trường KPI Type -->
+                <v-select
+                  v-model="editedItem.kpiType"
+                  :items="kpiTypeOptions"
+                  label="Types of KPI"
+                  required
+                ></v-select>
+
+                <!-- Trường KPI Goal -->
+                <v-text-field
+                  v-model="editedItem.kpiGoal"
+                  label="KPI Goal"
+                  type="number"
+                  required
+                ></v-text-field>
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue-darken-1" variant="text" @click="close">
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="closeUpdate"
+                >
                   Cancel
                 </v-btn>
-                <v-btn color="blue-darken-1" variant="text" @click="save">
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="updateCategoryFunction"
+                >
                   Save
                 </v-btn>
               </v-card-actions>
@@ -75,7 +113,7 @@
                 <v-btn
                   color="blue-darken-1"
                   variant="text"
-                  @click="deleteItemConfirm"
+                  @click="deleteCategoryFunction()"
                   >OK</v-btn
                 >
                 <v-spacer></v-spacer>
@@ -85,22 +123,28 @@
         </v-toolbar>
       </template>
       <template v-slot:[`item.actions`]="{ item }">
-        <v-icon size="small" class="me-2" @click="editItem(item.raw)">
+        <v-icon size="small" class="me-2" @click="editItem(item)">
           mdi-pencil
         </v-icon>
-        <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete </v-icon>
+        <v-icon size="small" @click="deleteItem(item.id)"> mdi-delete </v-icon>
       </template>
     </v-data-table>
   </v-card>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import axios from "axios";
+import NewCategoryDialog from "./dialog/NewCategoryDialog.vue";
+import { updateCategory, deleteCategory } from "@/api/api";
+
 const search = ref("");
-const dialog = ref(false);
 const dialogDelete = ref(false);
+const dialogEdit = ref(false);
 const categories = ref();
+const errorMsg = ref("");
+const needReload = ref(false);
+
 const headers = [
   { title: "Name", align: "start", key: "name" },
   { title: "Type Category", key: "typeCategory" },
@@ -111,6 +155,9 @@ const headers = [
   { title: "KPI Goal", key: "kpiGoal" },
   { title: "Action", key: "actions" },
 ];
+
+const typeCategoryOptions = ["ACCOUNT", "CAMPAIGN"];
+const kpiTypeOptions = ["IMP", "CPC", "CPV"];
 
 const fetchCategories = async () => {
   try {
@@ -154,59 +201,78 @@ const formatDate = (date) => {
   const year = date.getFullYear();
   return `${year}-${month}-${day}`;
 };
-const editedIndex = ref(-1);
+
 const editedItem = ref({
   name: "",
-  email: "",
-  role: "",
-  lastLogin: "",
+  typeCategory: "",
+  startDate: new Date(),
+  endDate: new Date(),
+  budget: 0,
+  kpiType: "",
+  kpiGoal: 0,
 });
-const defaultItem = {
-  name: "",
-  email: "",
-  role: "",
-  lastLogin: "",
+
+const updateCategoryFunction = async () => {
+  try {
+    const response = await updateCategory(editedItem.value);
+    console.log(response.data);
+    alert("Update Successfully");
+    dialogEdit.value = false;
+    needReload.value = true;
+  } catch (error) {
+    // Xử lý lỗi
+    console.log(error);
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Update thất bại:
+          ${error.response.data.message || error.message}`;
+    } else {
+      errorMsg.value = `Update thất bại: ${error.message}`;
+    }
+  }
 };
 
-const formTitle = computed(() => {
-  return editedIndex.value === -1 ? "New User" : "Edit User";
-});
-
 function editItem(item) {
-  editedIndex.value = categories.value.indexOf(item);
-  editedItem.value = Object.assign({}, item);
-  dialog.value = true;
+  editedItem.value = item;
+  dialogEdit.value = true;
 }
 
-function deleteItem(item) {
-  editedIndex.value = categories.value.indexOf(item);
-  editedItem.value = Object.assign({}, item);
+const deleteId = ref();
+function deleteItem(id) {
   dialogDelete.value = true;
+  deleteId.value = id;
 }
 
-function deleteItemConfirm() {
-  categories.value.splice(editedIndex.value, 1);
-  closeDelete();
+const deleteCategoryFunction = async () => {
+  try {
+    const response = await deleteCategory(deleteId.value);
+    console.log(response.data);
+    alert("Delete Successfully");
+    dialogDelete.value = false;
+    needReload.value = true;
+  } catch (error) {
+    // Xử lý lỗi
+    console.log(error);
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Delete thất bại:
+          ${error.response.data.message || error.message}`;
+    } else {
+      errorMsg.value = `Delete thất bại: ${error.message}`;
+    }
+  }
+};
+function closeUpdate() {
+  dialogEdit.value = false;
 }
-
-function close() {
-  dialog.value = false;
-  editedItem.value = Object.assign({}, defaultItem);
-  editedIndex.value = -1;
-}
-
 function closeDelete() {
   dialogDelete.value = false;
-  editedItem.value = Object.assign({}, defaultItem);
-  editedIndex.value = -1;
 }
 
-function save() {
-  if (editedIndex.value > -1) {
-    Object.assign(categories.value[editedIndex.value], editedItem.value);
-  } else {
-    categories.value.push(editedItem.value);
+watch(needReload, (newValue) => {
+  if (newValue) {
+    fetchCategories(); // Gọi lại hàm fetchUsers khi needReload thay đổi
+    needReload.value = false;
   }
-  close();
-}
+});
 </script>
