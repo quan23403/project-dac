@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -27,19 +28,22 @@ public class SecurityConfig {
     @Value("${jwt.signerKey}")
     private String singerKey;
 
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/log-in", "/register").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/*", "/category/*").permitAll()
                 )
                 .sessionManagement((manager) -> manager.sessionCreationPolicy(STATELESS))
-                .logout((logout) -> logout.permitAll())
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())));
-
+                .logout(LogoutConfigurer::permitAll)
+                .oauth2ResourceServer((oauth2) -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())))
+                .exceptionHandling((exception) -> exception.authenticationEntryPoint(customAuthenticationEntryPoint));
         return http.build();
     }
 
