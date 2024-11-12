@@ -40,7 +40,7 @@ public class CategoryService {
 
     public Category updateCategory(UpdateCategoryRequest request, Category category) throws IdInvalidException {
 
-        if(this.categoryRepository.existsByName(request.getName())) {
+        if(this.categoryRepository.checkNameCategory(request.getName(), request.getId()) > 0) {
             throw new IdInvalidException("Category's Name already exists");
         }
         category.setName(request.getName());

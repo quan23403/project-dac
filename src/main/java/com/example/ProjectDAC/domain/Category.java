@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name="category")
@@ -28,8 +29,8 @@ public class Category {
     @Enumerated(EnumType.STRING)
     private ETypeCategory typeCategory;
     private long budget;
-    private Timestamp startDate;
-    private Timestamp endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     private EKpiType kpiType;

@@ -38,8 +38,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/log-in", "/register").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/*", "/category/*").permitAll()
                 )
                 .sessionManagement((manager) -> manager.sessionCreationPolicy(STATELESS))
                 .logout(LogoutConfigurer::permitAll)
