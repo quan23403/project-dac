@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/*", "/category/*").permitAll()
+                        .requestMatchers("/*", "/category/*", "/excel/test/*").permitAll()
                 )
                 .sessionManagement((manager) -> manager.sessionCreationPolicy(STATELESS))
                 .logout(LogoutConfigurer::permitAll)

@@ -26,10 +26,6 @@ public class CategoryService {
         return this.categoryRepository.existsByName(name);
     }
 
-//    public boolean isExistCategoryByNameAndId(String name, long id) {
-//        return this.categoryRepository.existsNameAndNotId(name, id);
-//    }
-
     public List<Category> getCategories() {
         return this.categoryRepository.findByStatus(EStatus.ACTIVE);
     }
@@ -56,4 +52,22 @@ public class CategoryService {
         category.setStatus(EStatus.DELETED);
         this.categoryRepository.save(category);
     }
+
+    public void deleteCategoryByName(String name) {
+        this.categoryRepository.deleteByName(name);
+    }
+
+    public Category updateCategoryByName(Category updateCategory) {
+        Category categoryInDB = categoryRepository.findByName(updateCategory.getName());
+        if(categoryInDB.getTypeCategory() != updateCategory.getTypeCategory()) {
+            return null;
+        }
+        categoryInDB.setBudget(updateCategory.getBudget());
+        categoryInDB.setKpiType(updateCategory.getKpiType());
+        categoryInDB.setKpiGoal(updateCategory.getKpiGoal());
+        categoryInDB.setStartDate(updateCategory.getStartDate());
+        categoryInDB.setEndDate(updateCategory.getEndDate());
+        return this.categoryRepository.save(categoryInDB);
+    }
+
 }

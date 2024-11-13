@@ -28,7 +28,7 @@ public class Category {
     @NotNull(message = "Type khong duoc de trong")
     @Enumerated(EnumType.STRING)
     private ETypeCategory typeCategory;
-    private long budget;
+    private double budget;
     private LocalDate startDate;
     private LocalDate endDate;
 
