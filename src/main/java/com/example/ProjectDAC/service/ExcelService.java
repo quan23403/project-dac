@@ -1,6 +1,9 @@
 package com.example.ProjectDAC.service;
 
 import com.example.ProjectDAC.domain.Category;
+import com.example.ProjectDAC.error.IdInvalidException;
+import com.example.ProjectDAC.request.CreateCategoryRequest;
+import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.util.constant.ESheetTemplateExcel;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
 import org.apache.poi.ss.usermodel.Cell;
@@ -77,27 +80,32 @@ public class ExcelService {
                 System.out.println();
                 actionWithCategory(listActionWithCategory);
             }
-        } catch (IOException e) {
+        } catch (IOException | IdInvalidException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void actionWithCategory(Map<String, Object> listActions) {
+    public void actionWithCategory(Map<String, Object> listActions) throws IdInvalidException {
         System.out.println("--------------Action List------------");
         System.out.println(listActions.toString());
         if(Objects.equals(listActions.get("Action").toString(), "Update")) {
-            Category category = new Category();
-            category.setName(listActions.get("Category Name").toString());
-            category.setBudget((Double) listActions.get("Budget"));
-            category.setTypeCategory(ETypeCategory.ACCOUNT);
-            category.setStartDate((LocalDate) listActions.get("Start Date"));
-            category.setEndDate((LocalDate) listActions.get("End Date"));
-            if(!categoryService.isExistCategory(category.getName())) {
-                categoryService.create(category);
+            if(!categoryService.isExistCategory(listActions.get("Category Name").toString())) {
+                CreateCategoryRequest request = new CreateCategoryRequest();
+                request.setName(listActions.get("Category Name").toString());
+                request.setBudget((Double) listActions.get("Budget"));
+                request.setTypeCategory(ETypeCategory.ACCOUNT);
+                request.setStartDate((LocalDate) listActions.get("Start Date"));
+                request.setEndDate((LocalDate) listActions.get("End Date"));
+                categoryService.create(request);
                 System.out.print("Create Success");
             }
             else{
-                Category updateCategory = categoryService.updateCategoryByName(category);
+                UpdateCategoryRequest request = new UpdateCategoryRequest();
+                request.setName(listActions.get("Category Name").toString());
+                request.setBudget((Double) listActions.get("Budget"));
+                request.setStartDate((LocalDate) listActions.get("Start Date"));
+                request.setEndDate((LocalDate) listActions.get("End Date"));
+                Category updateCategory = categoryService.updateCategoryByName(request);
             }
         }
         else if(Objects.equals(listActions.get("Action").toString(), "Delete")) {

@@ -41,6 +41,10 @@ public class Category {
     @Enumerated(EnumType.STRING)
     private EStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anken_id")
+    private Anken anken;
+
     @PrePersist
     public void handleBeforeCreate() {
         Instant instant = Instant.now();

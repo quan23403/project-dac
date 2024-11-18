@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name="user")
@@ -31,6 +32,10 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private EStatus status;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_anken", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "anken_id"))
+    List<Anken> ankenList;
 
     @PrePersist
     public void handleBeforeCreate() {

@@ -1,8 +1,11 @@
 package com.example.ProjectDAC.service;
 
+import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.domain.Category;
 import com.example.ProjectDAC.error.IdInvalidException;
+import com.example.ProjectDAC.repository.AnkenRepository;
 import com.example.ProjectDAC.repository.CategoryRepository;
+import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.util.constant.EStatus;
 import jakarta.validation.Valid;
@@ -15,10 +18,21 @@ import java.util.Optional;
 @Service
 public class CategoryService {
     private final CategoryRepository categoryRepository;
-    public CategoryService(CategoryRepository categoryRepository) {
+    private final AnkenRepository ankenRepository;
+    public CategoryService(CategoryRepository categoryRepository, AnkenRepository ankenRepository) {
         this.categoryRepository = categoryRepository;
+        this.ankenRepository = ankenRepository;
     }
-    public Category create(@Valid @RequestBody Category category) {
+    public Category create(CreateCategoryRequest request) throws IdInvalidException {
+        Category category = new Category();
+        if(request.getNameAnken() != null) {
+            Anken anken = this.ankenRepository.findByName(request.getNameAnken());
+            if(anken == null) {
+                throw new IdInvalidException("Anken do not existed");
+            }
+            category.setAnken(anken);
+        }
+
         return this.categoryRepository.save(category);
     }
 
@@ -57,11 +71,11 @@ public class CategoryService {
         this.categoryRepository.deleteByName(name);
     }
 
-    public Category updateCategoryByName(Category updateCategory) {
+    public Category updateCategoryByName(UpdateCategoryRequest updateCategory) {
         Category categoryInDB = categoryRepository.findByName(updateCategory.getName());
-        if(categoryInDB.getTypeCategory() != updateCategory.getTypeCategory()) {
-            return null;
-        }
+//        if(categoryInDB.getTypeCategory() != updateCategory.getTypeCategory()) {
+//            return null;
+//        }
         categoryInDB.setBudget(updateCategory.getBudget());
         categoryInDB.setKpiType(updateCategory.getKpiType());
         categoryInDB.setKpiGoal(updateCategory.getKpiGoal());

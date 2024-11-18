@@ -2,6 +2,7 @@ package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.domain.Category;
 import com.example.ProjectDAC.error.IdInvalidException;
+import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.service.CategoryService;
 import jakarta.validation.Valid;
@@ -19,13 +20,13 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
     @PostMapping("/category")
-    public ResponseEntity<Category> create(@Valid @RequestBody Category category) throws IdInvalidException {
-        if (categoryService.isExistCategory(category.getName())) {
-            throw new IdInvalidException("Category's Name is existed" );
+    public ResponseEntity<Category> create(@Valid @RequestBody CreateCategoryRequest request) throws IdInvalidException {
+        if (categoryService.isExistCategory(request.getName())) {
+            throw new IdInvalidException("Category's Name already exists" );
         }
         try {
             // Tạo category mới và lưu vào cơ sở dữ liệu
-            Category newCategory = categoryService.create(category);
+            Category newCategory = categoryService.create(request);
             // Trả về 201 Created và đối tượng Category mới
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(newCategory);
