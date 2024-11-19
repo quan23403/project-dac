@@ -21,7 +21,7 @@ public class CategoryController {
     }
     @PostMapping("/category")
     public ResponseEntity<Category> create(@Valid @RequestBody CreateCategoryRequest request) throws IdInvalidException {
-        if (categoryService.isExistCategory(request.getName())) {
+        if (categoryService.isExistedCategoryByName(request.getName())) {
             throw new IdInvalidException("Category's Name already exists" );
         }
         try {

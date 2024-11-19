@@ -19,27 +19,41 @@ import java.util.Optional;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final AnkenRepository ankenRepository;
-    public CategoryService(CategoryRepository categoryRepository, AnkenRepository ankenRepository) {
+    private final AnkenService ankenService;
+    public CategoryService(CategoryRepository categoryRepository, AnkenRepository ankenRepository, AnkenService ankenService) {
         this.categoryRepository = categoryRepository;
         this.ankenRepository = ankenRepository;
+        this.ankenService = ankenService;
     }
     public Category create(CreateCategoryRequest request) throws IdInvalidException {
         Category category = new Category();
         if(request.getNameAnken() != null) {
             Anken anken = this.ankenRepository.findByName(request.getNameAnken());
             if(anken == null) {
-                throw new IdInvalidException("Anken do not existed");
+                Anken newAnken = new Anken();
+                newAnken.setName(request.getNameAnken());
+                anken = this.ankenService.create(newAnken);
             }
             category.setAnken(anken);
         }
+        category.setName(request.getName());
+        category.setTypeCategory(request.getTypeCategory());
+        category.setBudget(request.getBudget());
+        category.setKpiGoal(request.getKpiGoal());
+        category.setKpiType(request.getKpiType());
+        category.setStartDate(request.getStartDate());
+        category.setEndDate(request.getEndDate());
 
         return this.categoryRepository.save(category);
     }
 
-    public boolean isExistCategory(String name) {
+    public boolean isExistedCategoryByName(String name) {
         return this.categoryRepository.existsByName(name);
     }
 
+    public boolean isExistedCategoryById(long id) {
+        return this.categoryRepository.existsById(id);
+    }
     public List<Category> getCategories() {
         return this.categoryRepository.findByStatus(EStatus.ACTIVE);
     }
@@ -76,11 +90,19 @@ public class CategoryService {
 //        if(categoryInDB.getTypeCategory() != updateCategory.getTypeCategory()) {
 //            return null;
 //        }
+        Anken anken = this.ankenRepository.findByName(updateCategory.getNameAnken());
+        if(anken == null) {
+            Anken newAnken = new Anken();
+            newAnken.setName(updateCategory.getNameAnken());
+            anken = this.ankenService.create(newAnken);
+        }
+        categoryInDB.setAnken(anken);
         categoryInDB.setBudget(updateCategory.getBudget());
         categoryInDB.setKpiType(updateCategory.getKpiType());
         categoryInDB.setKpiGoal(updateCategory.getKpiGoal());
         categoryInDB.setStartDate(updateCategory.getStartDate());
         categoryInDB.setEndDate(updateCategory.getEndDate());
+
         return this.categoryRepository.save(categoryInDB);
     }
 

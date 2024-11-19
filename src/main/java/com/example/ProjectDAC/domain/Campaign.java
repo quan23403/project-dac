@@ -15,7 +15,6 @@ public class Campaign {
     private long id;
     private String campaignCode;
     private String name;
-    private EMedia media;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")

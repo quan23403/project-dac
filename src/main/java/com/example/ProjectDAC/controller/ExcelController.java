@@ -1,6 +1,7 @@
 package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.service.ExcelService;
+import com.example.ProjectDAC.util.constant.ESheetTemplateExcel;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +18,7 @@ public class ExcelController {
     @PostMapping("/test/read-excel")
     public String readExcel(@RequestParam("file") MultipartFile file) {
         try {
-            excelService.readExcelSheetCategoryAccount(file);
+            excelService.readExcelSheetCategoryAccount(file, ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber());
             return "Success";
         } catch (Exception e) {
             throw new RuntimeException(e);

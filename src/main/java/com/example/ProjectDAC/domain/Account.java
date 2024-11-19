@@ -17,6 +17,8 @@ public class Account {
     private long id;
     private String accountCode;
     private String name;
+
+    @Enumerated(EnumType.STRING)
     private EMedia media;
 
     @ManyToOne(fetch = FetchType.LAZY)
