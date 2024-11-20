@@ -1,12 +1,15 @@
 package com.example.ProjectDAC.service;
 
+import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.domain.Category;
+import com.example.ProjectDAC.domain.dto.AccountCategoryDTO;
+import com.example.ProjectDAC.domain.dto.CampaignCategoryDTO;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.repository.CategoryBindingRepository;
 import com.example.ProjectDAC.request.CategoryBindingRequest;
 import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
-import com.example.ProjectDAC.response.ResCategoryBindingDTO;
+import com.example.ProjectDAC.response.ResCategoryInExcel;
 import com.example.ProjectDAC.util.constant.EKpiType;
 import com.example.ProjectDAC.util.constant.ESheetTemplateExcel;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
@@ -27,10 +30,13 @@ public class ExcelService {
     private final CategoryService categoryService;
     private final CategoryBindingRepository categoryBindingRepository;
     private final CategoryBindingService categoryBindingService;
-    public ExcelService(CategoryService categoryService, CategoryBindingRepository categoryBindingRepository, CategoryBindingService categoryBindingService) {
+    private final AnkenService ankenService;
+    public ExcelService(CategoryService categoryService, CategoryBindingRepository categoryBindingRepository,
+                        AnkenService ankenService, CategoryBindingService categoryBindingService) {
         this.categoryService = categoryService;
         this.categoryBindingRepository = categoryBindingRepository;
         this.categoryBindingService = categoryBindingService;
+        this.ankenService = ankenService;
     }
     public void readExcelSheetCategoryAccount(MultipartFile file, int sheetNumber) {
         try (XSSFWorkbook workbook = new XSSFWorkbook(file.getInputStream())) {
@@ -160,29 +166,81 @@ public class ExcelService {
         }
     }
 
+    public void actionWithCampaignCategory(Sheet sheet, Map<String, Integer> columnMap2) throws IdInvalidException {
+        System.out.println("--------------Action List------------");
+        List<Map<String, Object>> listActions = new ArrayList<>();
+        for(int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            Map<String, Object> action = new HashMap<>();
+
+            Cell campaignId = row.getCell(columnMap2.get("Campaign Id"));
+            if(campaignId != null) {
+                action.put("Campaign Id", campaignId.getNumericCellValue());
+            }
+
+            Cell categoryId = row.getCell(columnMap2.get("Category Id"));
+            if(categoryId != null) {
+                action.put("Category Id", categoryId.getNumericCellValue());
+            }
+
+            Cell actionAccountCategory = row.getCell(columnMap2.get("Action"));
+            if(actionAccountCategory != null) {
+                action.put("Action", actionAccountCategory.getStringCellValue());
+            }
+            System.out.println();
+            listActions.add(action);
+        }
+        // Giả sử bạn lấy được giá trị từ listActions là Double
+        for(Map<String, Object> action : listActions) {
+            if(action.get("Action") == null) {
+                continue;
+            }
+            Object categoryIdObj = action.get("Category Id");
+            Object accountIdObj = action.get("Account Id");
+
+            if(Objects.equals(action.get("Action").toString(), "Update")) {
+                CategoryBindingRequest request = new CategoryBindingRequest();
+                request.setCategoryId((((Double) categoryIdObj).longValue()));
+                request.setEntityId((((Double) accountIdObj).longValue()));
+                request.setEntityType(ETypeCategory.CAMPAIGN);
+                if(!this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), ETypeCategory.ACCOUNT)) {
+                    this.categoryBindingService.create(request);
+                    System.out.print("Create Campaign-Category Success");
+                }
+                else {
+                    this.categoryBindingService.update(request);
+                    System.out.print("Update Campaign-Category Success");
+                }
+            }
+            else if(Objects.equals(action.get("Action").toString(), "Delete")) {
+                this.categoryBindingService.deleteCategoryAccount((((Double) accountIdObj).longValue()), ETypeCategory.ACCOUNT);
+                System.out.print("Delete Campaign-Category Success");
+            }
+        }
+    }
     public void actionWithAccountCategory(Sheet sheet, Map<String, Integer> columnMap2) throws IdInvalidException {
         System.out.println("--------------Action List------------");
         List<Map<String, Object>> listActions = new ArrayList<>();
         for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
-            Map<String, Object> actionWithAccountCategory = new HashMap<>();
+            Map<String, Object> action = new HashMap<>();
             // Table 2
             Cell accountId = row.getCell(columnMap2.get("Account Id"));
             if(accountId != null) {
-                actionWithAccountCategory.put("Account Id", accountId.getNumericCellValue());
+                action.put("Account Id", accountId.getNumericCellValue());
             }
 
             Cell categoryId = row.getCell(columnMap2.get("Category Id"));
             if(categoryId != null) {
-                actionWithAccountCategory.put("Category Id", categoryId.getNumericCellValue());
+                action.put("Category Id", categoryId.getNumericCellValue());
             }
 
             Cell actionAccountCategory = row.getCell(columnMap2.get("Action"));
             if(actionAccountCategory != null) {
-                actionWithAccountCategory.put("Action", actionAccountCategory.getStringCellValue());
+                action.put("Action", actionAccountCategory.getStringCellValue());
             }
             System.out.println();
-            listActions.add(actionWithAccountCategory);
+            listActions.add(action);
         }
 
         // Giả sử bạn lấy được giá trị từ listActions là Double
@@ -213,4 +271,64 @@ public class ExcelService {
             }
         }
     }
+
+    public List<ResCategoryInExcel> exportCategoryToSheet() {
+        List<ResCategoryInExcel> result = new ArrayList<>();
+        List<Anken> ankenList = this.ankenService.getAll();
+        for(Anken anken : ankenList) {
+            for(Category category : anken.getCategoryList()) {
+                result.add(new ResCategoryInExcel(anken.getName(), category.getId(), category.getName(), category.getBudget(),
+                        category.getKpiType(), category.getKpiGoal(), category.getStartDate(), category.getEndDate()));
+            }
+        }
+        for (ResCategoryInExcel resCategoryInExcel : result) {
+            System.out.println(resCategoryInExcel.toString());
+        }
+        return result;
+    }
+
+    public List<AccountCategoryDTO> getAccountCategory() {
+        List<Object[]> results = categoryBindingRepository.findAccountCategoryDetailsRaw();
+        List<AccountCategoryDTO> dtos = new ArrayList<>();
+
+        for (Object[] result : results) {
+            String ankenName = (String) result[0];
+            Long accountId = ((Number) result[1]).longValue();
+            String accountName = (String) result[2];
+            String accountCode = (String) result[3];
+            String media = (String) result[4];
+            Long categoryId = ((Number) result[5]).longValue();
+            String categoryName = (String) result[6];
+
+            AccountCategoryDTO dto = new AccountCategoryDTO(ankenName, accountId, accountName, accountCode, media, categoryId, categoryName);
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+
+    public List<CampaignCategoryDTO> getCampaignCategoryDetails() {
+        List<Object[]> results = categoryBindingRepository.findCampaignCategoryDetailsRaw();
+        List<CampaignCategoryDTO> dtos = new ArrayList<>();
+
+        for (Object[] result : results) {
+            String ankenName = (String) result[0];
+            String accountName = (String) result[1];
+            String accountCode = (String) result[2];
+            String media = (String) result[3];
+            Long campaignId = ((Number) result[4]).longValue();
+            String campaignName = (String) result[5];
+            String campaignCode = (String) result[6];
+            Long categoryId = ((Number) result[7]).longValue();
+            String categoryName = (String) result[8];
+
+            CampaignCategoryDTO dto = new CampaignCategoryDTO(ankenName, accountName, accountCode, media,
+                    campaignId, campaignName, campaignCode,
+                    categoryId, categoryName);
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+
 }

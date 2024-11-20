@@ -4,6 +4,8 @@ import com.example.ProjectDAC.util.constant.EKpiType;
 import com.example.ProjectDAC.util.constant.EStatus;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -45,7 +47,7 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "anken_id")
-    @JsonBackReference
+    @JsonIgnore
     private Anken anken;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)

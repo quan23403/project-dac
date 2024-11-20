@@ -2,7 +2,7 @@ package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.error.IdInvalidException;
-import com.example.ProjectDAC.response.ResUserDTO;
+import com.example.ProjectDAC.domain.dto.ResUserDTO;
 import com.example.ProjectDAC.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

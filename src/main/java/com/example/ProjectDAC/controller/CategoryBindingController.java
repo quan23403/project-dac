@@ -3,13 +3,12 @@ package com.example.ProjectDAC.controller;
 import com.example.ProjectDAC.domain.CategoryBinding;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.request.CategoryBindingRequest;
-import com.example.ProjectDAC.response.ResCategoryBindingDTO;
+import com.example.ProjectDAC.domain.dto.ResCategoryBindingDTO;
 import com.example.ProjectDAC.service.CategoryBindingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 

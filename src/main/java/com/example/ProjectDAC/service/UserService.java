@@ -2,8 +2,7 @@ package com.example.ProjectDAC.service;
 
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.repository.UserRepository;
-import com.example.ProjectDAC.response.ResLoginDTO;
-import com.example.ProjectDAC.response.ResUserDTO;
+import com.example.ProjectDAC.domain.dto.ResUserDTO;
 import org.springframework.stereotype.Service;
 
 @Service

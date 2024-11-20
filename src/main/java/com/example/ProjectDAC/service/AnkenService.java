@@ -4,6 +4,8 @@ import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.repository.AnkenRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AnkenService {
     private final AnkenRepository ankenRepository;
@@ -16,5 +18,9 @@ public class AnkenService {
 
     public boolean isAnkenNameExist(String name) {
         return this.ankenRepository.existsByName(name);
+    }
+
+    public List<Anken> getAll() {
+        return this.ankenRepository.findAll();
     }
 }

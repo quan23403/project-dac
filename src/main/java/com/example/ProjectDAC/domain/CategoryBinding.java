@@ -19,6 +19,7 @@ public class CategoryBinding {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonIgnore
     private Category category;
 
     private long entityId;

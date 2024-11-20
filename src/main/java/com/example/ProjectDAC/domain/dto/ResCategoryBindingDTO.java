@@ -1,4 +1,4 @@
-package com.example.ProjectDAC.response;
+package com.example.ProjectDAC.domain.dto;
 
 import com.example.ProjectDAC.util.constant.ETypeCategory;
 import lombok.Getter;
