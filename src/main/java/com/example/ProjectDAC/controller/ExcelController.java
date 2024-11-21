@@ -1,10 +1,8 @@
 package com.example.ProjectDAC.controller;
 
-import com.example.ProjectDAC.domain.dto.AccountCategoryDTO;
-import com.example.ProjectDAC.domain.dto.CampaignCategoryDTO;
 import com.example.ProjectDAC.response.ResCategoryInExcel;
 import com.example.ProjectDAC.service.ExcelService;
-import com.example.ProjectDAC.util.constant.ESheetTemplateExcel;
+import com.example.ProjectDAC.util.constant.ETypeCategory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +18,7 @@ public class ExcelController {
     @PostMapping("/test/read-excel")
     public String readExcel(@RequestParam("file") MultipartFile file) {
         try {
-            excelService.readExcelSheetCategoryAccount(file, ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber());
+            excelService.readExcelSheetCategoryAccount(file, 1);
             return "Success";
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -29,16 +27,21 @@ public class ExcelController {
 
     @GetMapping("/test/write-excel-category")
     public List<ResCategoryInExcel> writeCategoryExcel() {
-        return excelService.exportCategoryToSheet();
+        return excelService.getCategory(ETypeCategory.CAMPAIGN);
     }
 
+    @GetMapping("/export")
+    public String exportExcel() {
+        this.excelService.exportData();
+        return "Export Successfully";
+    }
 //    @GetMapping("/test/write-excel")
 //    public List<AccountCategoryDTO> writeExcel() {
 //        return excelService.getAccountCategory();
 //    }
 
-    @GetMapping("/test/write-excel")
-    public List<CampaignCategoryDTO> writeExcel() {
-        return excelService.getCampaignCategoryDetails();
-    }
+//    @GetMapping("/test/write-excel")
+//    public void writeExcel() {
+//        this.excelService.writeSheetAccountCategory();
+//    }
 }

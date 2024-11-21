@@ -8,6 +8,7 @@ import com.example.ProjectDAC.repository.CategoryRepository;
 import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.util.constant.EStatus;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,6 +63,10 @@ public class CategoryService {
         return this.categoryRepository.findById(id);
     }
 
+    public Category getCategoryByName(String name) {
+        return this.categoryRepository.findByName(name);
+    }
+
     public Category updateCategory(UpdateCategoryRequest request, Category category) throws IdInvalidException {
 
         if(this.categoryRepository.checkNameCategory(request.getName(), request.getId()) > 0) {
@@ -81,6 +86,7 @@ public class CategoryService {
         this.categoryRepository.save(category);
     }
 
+    @Transactional
     public void deleteCategoryByName(String name) {
         this.categoryRepository.deleteByName(name);
     }

@@ -32,4 +32,18 @@ public class ResCategoryInExcel {
     public ResCategoryInExcel() {
 
     }
+
+    @Override
+    public String toString() {
+        return "ResCategoryInExcel{" +
+                "nameAnken='" + nameAnken + '\'' +
+                ", categoryId=" + categoryId +
+                ", categoryName='" + categoryName + '\'' +
+                ", budget=" + budget +
+                ", typeOfKPI=" + typeOfKPI +
+                ", kpiGoal=" + kpiGoal +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                '}';
+    }
 }

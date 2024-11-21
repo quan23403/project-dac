@@ -17,12 +17,13 @@ public interface CategoryBindingRepository extends JpaRepository<CategoryBinding
 
     CategoryBinding findByEntityIdAndEntityType(long id, ETypeCategory entityType);
 
-    @Query(value = "SELECT anken.name AS ankenName, a.id AS accountId, a.name AS accountName, a.account_code AS accountCode, a.media AS media, " +
-            "c.id AS categoryId, c.name AS categoryName " +
-            "FROM (SELECT * FROM project_dac.category_binding WHERE entity_type = 'ACCOUNT') AS temp_table " +
-            "JOIN account a ON temp_table.entity_id = a.id " +
-            "JOIN category c ON temp_table.category_id = c.id " +
-            "JOIN anken ON anken.id = a.id",
+    @Query(value = "SELECT anken.name AS ankenName, a.id AS accountId , a.name AS accountName, a.account_code AS accountCode, a.media AS media, cb.category_id As categoryId,\n" +
+            "\tcb.name AS categoryName\n" +
+            "FROM account AS a\n" +
+            "LEFT JOIN (Select entity_id, entity_type, category_id, name from category_binding\n" +
+            "JOIN category c ON c.id = category_binding.category_id\n" +
+            "where category_binding.entity_type = 'ACCOUNT') As cb ON cb.entity_id = a.id\n" +
+            "JOIN anken ON anken.id = a.anken_id;",
             nativeQuery = true)
     List<Object[]> findAccountCategoryDetailsRaw();
 
