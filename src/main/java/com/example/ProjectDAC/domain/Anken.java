@@ -1,5 +1,6 @@
 package com.example.ProjectDAC.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -20,9 +21,10 @@ public class Anken {
     private String name;
 
     @OneToMany(mappedBy = "anken", fetch = FetchType.LAZY)
+    @JsonIgnore
     List<Account> accountList;
 
     @OneToMany(mappedBy = "anken", fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonIgnore
     List<Category> categoryList;
 }

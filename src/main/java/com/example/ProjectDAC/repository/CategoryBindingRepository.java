@@ -27,14 +27,14 @@ public interface CategoryBindingRepository extends JpaRepository<CategoryBinding
             nativeQuery = true)
     List<Object[]> findAccountCategoryDetailsRaw();
 
-    @Query(value = "SELECT anken.name AS ankenName, a.name AS accountName, a.account_code AS accountCode, a.media AS media, " +
-            "cam.id AS campaignId, cam.name AS campaignName, cam.campaign_code AS campaignCode, " +
-            "c.id AS categoryId, c.name AS categoryName " +
-            "FROM (SELECT * FROM project_dac.category_binding WHERE entity_type = 'CAMPAIGN') AS temp_table " +
-            "JOIN campaign cam ON temp_table.entity_id = cam.id " +
-            "JOIN account a ON a.id = cam.account_id " +
-            "JOIN category c ON temp_table.category_id = c.id " +
-            "JOIN anken ON anken.id = a.anken_id",
+    @Query(value = "SELECT anken.name AS ankenName, a.name AS accountName, a.account_code AS accountCode, a.media AS media, \n" +
+            "       cam.id AS campaignId, cam.name AS campaignName, cam.campaign_code AS campaignCode, cb.category_id AS categoryId, cb.name AS categoryName\n" +
+            "FROM campaign AS cam\n" +
+            "JOIN account a ON cam.account_id = a.id\n" +
+            "LEFT JOIN (Select entity_id, entity_type, category_id, name from category_binding\n" +
+            "JOIN category c ON c.id = category_binding.category_id\n" +
+            "where category_binding.entity_type = 'CAMPAIGN') As cb ON cb.entity_id = cam.id\n" +
+            "JOIN anken ON anken.id = a.anken_id;",
             nativeQuery = true)
     List<Object[]> findCampaignCategoryDetailsRaw();
 }

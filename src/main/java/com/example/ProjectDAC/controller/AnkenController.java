@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class AnkenController {
@@ -25,5 +24,11 @@ public class AnkenController {
         }
         Anken newAnken = this.ankenService.create(anken);
         return ResponseEntity.status(HttpStatus.CREATED).body(newAnken);
+    }
+
+    @GetMapping("/anken")
+    public ResponseEntity<List<Anken>> getAllAnken() {
+        List<Anken> ankens = this.ankenService.getAll();
+        return ResponseEntity.status(HttpStatus.OK).body(ankens);
     }
 }

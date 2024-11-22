@@ -18,7 +18,7 @@ public class ExcelController {
     @PostMapping("/test/read-excel")
     public String readExcel(@RequestParam("file") MultipartFile file) {
         try {
-            excelService.readExcelSheetCategoryAccount(file, 1);
+            excelService.readExcelSheetCategory(file);
             return "Success";
         } catch (Exception e) {
             throw new RuntimeException(e);

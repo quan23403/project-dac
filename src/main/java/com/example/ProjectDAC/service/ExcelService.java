@@ -15,6 +15,7 @@ import com.example.ProjectDAC.util.constant.ESheetTemplateExcel;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,7 @@ public class ExcelService {
     private final CategoryBindingRepository categoryBindingRepository;
     private final CategoryBindingService categoryBindingService;
     private final AnkenService ankenService;
+    private String[] actionsValues =  {"Update", "Delete", "None"};
     public ExcelService(CategoryService categoryService, CategoryBindingRepository categoryBindingRepository,
                         AnkenService ankenService, CategoryBindingService categoryBindingService) {
         this.categoryService = categoryService;
@@ -38,92 +40,94 @@ public class ExcelService {
         this.categoryBindingService = categoryBindingService;
         this.ankenService = ankenService;
     }
-    public void readExcelSheetCategoryAccount(MultipartFile file, int sheetNumber) {
+
+    public void readExcelSheetCategory(MultipartFile file) {
         try (XSSFWorkbook workbook = new XSSFWorkbook(file.getInputStream())) {
             // Lấy sheet đầu tiên
 //            Sheet sheet = workbook.getSheetAt(ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber());
-            Sheet sheet = workbook.getSheetAt(sheetNumber);
-            Map<String, Integer> columnMap = new HashMap<>();
-            Map<String, Integer> columnMap2 = new HashMap<>();
-            List<Map<String, Object>> listActionWithCategory = new ArrayList<>();
+            for(int sheetNumber = ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber(); sheetNumber <= ESheetTemplateExcel.CATEGORY_CAMPAIGN.getSheetNumber(); sheetNumber++) {
+                Sheet sheet = workbook.getSheetAt(sheetNumber);
+                Map<String, Integer> columnMap = new HashMap<>();
+                Map<String, Integer> columnMap2 = new HashMap<>();
+                List<Map<String, Object>> listActionWithCategory = new ArrayList<>();
 
-            Map<String, Object> listActionCategoryAccount = new HashMap<>();
-            boolean foundEmptyRow = false;
-            Row headerRow = sheet.getRow(0);
-            for(int i = 0; i <= headerRow.getPhysicalNumberOfCells(); i++) {
-                Cell headerCell = headerRow.getCell(i);
-                if (headerCell == null || headerCell.getCellType() == CellType.BLANK) {
-                    foundEmptyRow = true;
-                    continue;
+                Map<String, Object> listActionCategoryAccount = new HashMap<>();
+                boolean foundEmptyRow = false;
+                Row headerRow = sheet.getRow(0);
+                for(int i = 0; i <= headerRow.getPhysicalNumberOfCells(); i++) {
+                    Cell headerCell = headerRow.getCell(i);
+                    if (headerCell == null || headerCell.getCellType() == CellType.BLANK) {
+                        foundEmptyRow = true;
+                        continue;
+                    }
+                    if(!foundEmptyRow) {
+                        columnMap.put(headerCell.getStringCellValue(), headerCell.getColumnIndex());
+                    }
+                    else {
+                        columnMap2.put(headerCell.getStringCellValue(), headerCell.getColumnIndex());
+                    }
                 }
-                if(!foundEmptyRow) {
-                    columnMap.put(headerCell.getStringCellValue(), headerCell.getColumnIndex());
-                }
-                else {
-                    columnMap2.put(headerCell.getStringCellValue(), headerCell.getColumnIndex());
-                }
-            }
-            int cnt = sheet.getLastRowNum();
-            for (int rowIndex = 1; rowIndex < sheet.getLastRowNum(); rowIndex++) {
-                Row row = sheet.getRow(rowIndex);
-                if(row == null) {
-                    break;
-                }
-                Map<String, Object> actionWithCategory = new HashMap<>();
+                for (int rowIndex = 1; rowIndex < sheet.getLastRowNum(); rowIndex++) {
+                    Row row = sheet.getRow(rowIndex);
+                    if(row == null) {
+                        break;
+                    }
+                    Map<String, Object> actionWithCategory = new HashMap<>();
 
-                Cell categoryName = row.getCell(columnMap.get("Category Name"));
-                if(categoryName != null) {
-                    actionWithCategory.put("Category Name", categoryName.getStringCellValue());
-                }
+                    Cell categoryName = row.getCell(columnMap.get("Category Name"));
+                    if(categoryName != null) {
+                        actionWithCategory.put("Category Name", categoryName.getStringCellValue());
+                    }
 
-                Cell ankenName = row.getCell(columnMap.get("Anken Name"));
-                if(ankenName != null) {
-                    actionWithCategory.put("Anken Name", ankenName.getStringCellValue());
-                }
+                    Cell ankenName = row.getCell(columnMap.get("Anken Name"));
+                    if(ankenName != null) {
+                        actionWithCategory.put("Anken Name", ankenName.getStringCellValue());
+                    }
 
-                Cell action = row.getCell(columnMap.get("Action"));
-                if(action != null) {
-                    actionWithCategory.put("Action", action.getStringCellValue());
-                }
+                    Cell action = row.getCell(columnMap.get("Action"));
+                    if(action != null) {
+                        actionWithCategory.put("Action", action.getStringCellValue());
+                    }
 
-                Cell budget = row.getCell(columnMap.get("Budget"));
-                if(budget == null) {
-                    actionWithCategory.put("Budget", 0);
-                }
-                else{
-                    actionWithCategory.put("Budget", budget.getNumericCellValue());
-                }
+                    Cell budget = row.getCell(columnMap.get("Budget"));
+                    if(budget == null) {
+                        actionWithCategory.put("Budget", 0);
+                    }
+                    else{
+                        actionWithCategory.put("Budget", budget.getNumericCellValue());
+                    }
 
-                Cell typeOfKpi = row.getCell(columnMap.get("Type of KPI"));
-                if(typeOfKpi != null) {
-                    actionWithCategory.put("Type of KPI", typeOfKpi.getStringCellValue());
-                }
+                    Cell typeOfKpi = row.getCell(columnMap.get("Type of KPI"));
+                    if(typeOfKpi != null) {
+                        actionWithCategory.put("Type of KPI", typeOfKpi.getStringCellValue());
+                    }
 
-                Cell KpiGoal = row.getCell(columnMap.get("KPI Goal"));
-                if(KpiGoal == null) {
-                    actionWithCategory.put("KPI Goal", (long) 0);
-                }
-                else {
-                    actionWithCategory.put("KPI Goal", KpiGoal.getNumericCellValue());
-                }
+                    Cell KpiGoal = row.getCell(columnMap.get("KPI Goal"));
+                    if(KpiGoal == null) {
+                        actionWithCategory.put("KPI Goal", (long) 0);
+                    }
+                    else {
+                        actionWithCategory.put("KPI Goal", KpiGoal.getNumericCellValue());
+                    }
 
-                Cell startDate = row.getCell(columnMap.get("Start Date"));
-                if(startDate != null) {
-                    actionWithCategory.put("Start Date", startDate.getLocalDateTimeCellValue().toLocalDate());
-                }
+                    Cell startDate = row.getCell(columnMap.get("Start Date"));
+                    if(startDate != null) {
+                        actionWithCategory.put("Start Date", startDate.getLocalDateTimeCellValue().toLocalDate());
+                    }
 
-                Cell endDate = row.getCell(columnMap.get("End Date"));
-                if(endDate != null) {
-                    actionWithCategory.put("End Date", endDate.getLocalDateTimeCellValue().toLocalDate());
+                    Cell endDate = row.getCell(columnMap.get("End Date"));
+                    if(endDate != null) {
+                        actionWithCategory.put("End Date", endDate.getLocalDateTimeCellValue().toLocalDate());
+                    }
+                    System.out.println();
+                    listActionWithCategory.add(actionWithCategory);
                 }
-                System.out.println();
-                listActionWithCategory.add(actionWithCategory);
-            }
-            actionWithCategory(listActionWithCategory, sheetNumber);
-            if(sheetNumber == ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber()) {
-                actionWithAccountCategory(sheet, columnMap2);
-            } else if (sheetNumber == ESheetTemplateExcel.CATEGORY_CAMPAIGN.getSheetNumber()) {
-                actionWithCampaignCategory(sheet, columnMap2);
+                actionWithCategory(listActionWithCategory, sheetNumber);
+                if(sheetNumber == ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber()) {
+                    actionWithAccountCategory(sheet, columnMap2);
+                } else if (sheetNumber == ESheetTemplateExcel.CATEGORY_CAMPAIGN.getSheetNumber()) {
+                    actionWithCampaignCategory(sheet, columnMap2);
+                }
             }
         } catch (IOException | IdInvalidException e) {
             throw new RuntimeException(e);
@@ -134,6 +138,9 @@ public class ExcelService {
 //        System.out.println("--------------Action List------------");
 //        System.out.println(listActions.toString());
         for(Map<String, Object> action : listActions) {
+            if(action.get("Action") == null) {
+                break;
+            }
             if(Objects.equals(action.get("Action").toString(), "Update")) {
                 if(!categoryService.isExistedCategoryByName(action.get("Category Name").toString())) {
                     CreateCategoryRequest request = new CreateCategoryRequest();
@@ -151,7 +158,7 @@ public class ExcelService {
                     request.setEndDate((LocalDate) action.get("End Date"));
                     request.setNameAnken(action.get("Anken Name").toString());
                     categoryService.create(request);
-                    System.out.print("Create Success");
+                    System.out.print("Create Category Success");
                 }
                 else{
                     UpdateCategoryRequest request = new UpdateCategoryRequest();
@@ -162,65 +169,76 @@ public class ExcelService {
                     request.setNameAnken(action.get("Anken Name").toString());
                     request.setKpiType(EKpiType.valueOf(action.get("Type of KPI").toString()));
                     request.setKpiGoal(((Double) action.get("KPI Goal")).longValue());
-                    Category updateCategory = categoryService.updateCategoryByName(request);
+                    categoryService.updateCategoryByName(request);
+                    System.out.print("Update Category Success");
                 }
             }
             else if(Objects.equals(action.get("Action").toString(),"Delete")) {
                 categoryService.deleteCategoryByName(action.get("Category Name").toString());
-                System.out.print("Delete Success");
+                System.out.print("Delete Category Success");
             }
         }
     }
 
     public void actionWithCampaignCategory(Sheet sheet, Map<String, Integer> columnMap2) throws IdInvalidException {
-        System.out.println("--------------Action List------------");
         List<Map<String, Object>> listActions = new ArrayList<>();
-        for(int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
+        for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
+            if(row == null || row.getCell(columnMap2.get("Action")) == null) {
+                break;
+            }
             Map<String, Object> action = new HashMap<>();
 
             Cell campaignId = row.getCell(columnMap2.get("Campaign Id"));
-            if(campaignId != null) {
+            if (campaignId != null) {
                 action.put("Campaign Id", campaignId.getNumericCellValue());
             }
 
             Cell categoryId = row.getCell(columnMap2.get("Category Id"));
-            if(categoryId != null) {
+            if (categoryId != null) {
                 action.put("Category Id", categoryId.getNumericCellValue());
             }
 
+            Cell categoryName = row.getCell(columnMap2.get("Category Name"));
+            if (categoryName != null) {
+                action.put("Category Name", categoryName.getStringCellValue());
+            }
+
             Cell actionAccountCategory = row.getCell(columnMap2.get("Action"));
-            if(actionAccountCategory != null) {
+            if (actionAccountCategory != null) {
                 action.put("Action", actionAccountCategory.getStringCellValue());
             }
-            System.out.println();
             listActions.add(action);
         }
         // Giả sử bạn lấy được giá trị từ listActions là Double
-        for(Map<String, Object> action : listActions) {
-            if(action.get("Action") == null) {
+        for (Map<String, Object> action : listActions) {
+            if (action.get("Action") == "None") {
                 continue;
             }
-            Object categoryIdObj = action.get("Category Id");
-            Object accountIdObj = action.get("Account Id");
+            if (Objects.equals(action.get("Action").toString(), "Update")) {
+                if (action.get("Category Id") == null) {
+                    Category category = this.categoryService.getCategoryByName((String) action.get("Category Name"));
+                    action.put("Category Id", (double) category.getId());
+                }
+                Object categoryIdObj = action.get("Category Id");
+                Object campaignIdObj = action.get("Campaign Id");
 
-            if(Objects.equals(action.get("Action").toString(), "Update")) {
-                CategoryBindingRequest request = new CategoryBindingRequest();
-                request.setCategoryId((((Double) categoryIdObj).longValue()));
-                request.setEntityId((((Double) accountIdObj).longValue()));
-                request.setEntityType(ETypeCategory.CAMPAIGN);
-                if(!this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), ETypeCategory.ACCOUNT)) {
-                    this.categoryBindingService.create(request);
-                    System.out.print("Create Campaign-Category Success");
+                if (Objects.equals(action.get("Action").toString(), "Update")) {
+                    CategoryBindingRequest request = new CategoryBindingRequest();
+                    request.setCategoryId((((Double) categoryIdObj).longValue()));
+                    request.setEntityId((((Double) campaignIdObj).longValue()));
+                    request.setEntityType(ETypeCategory.CAMPAIGN);
+                    if (!this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), ETypeCategory.CAMPAIGN)) {
+                        this.categoryBindingService.create(request);
+                        System.out.print("Create Campaign-Category Success");
+                    } else {
+                        this.categoryBindingService.update(request);
+                        System.out.print("Update Campaign-Category Success");
+                    }
+                } else if (Objects.equals(action.get("Action").toString(), "Delete")) {
+                    this.categoryBindingService.deleteCategoryAccount((((Double) action.get("Campaign Id")).longValue()), ETypeCategory.ACCOUNT);
+                    System.out.print("Delete Campaign-Category Success");
                 }
-                else {
-                    this.categoryBindingService.update(request);
-                    System.out.print("Update Campaign-Category Success");
-                }
-            }
-            else if(Objects.equals(action.get("Action").toString(), "Delete")) {
-                this.categoryBindingService.deleteCategoryAccount((((Double) accountIdObj).longValue()), ETypeCategory.ACCOUNT);
-                System.out.print("Delete Campaign-Category Success");
             }
         }
     }
@@ -229,7 +247,7 @@ public class ExcelService {
         List<Map<String, Object>> listActions = new ArrayList<>();
         for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
-            if(row.getCell(columnMap2.get("Action")) == null) {
+            if(row == null || row.getCell(columnMap2.get("Action")) == null) {
                 break;
             }
             Map<String, Object> action = new HashMap<>();
@@ -253,7 +271,6 @@ public class ExcelService {
             if(actionAccountCategory != null) {
                 action.put("Action", actionAccountCategory.getStringCellValue());
             }
-            System.out.println();
             listActions.add(action);
         }
 
@@ -337,7 +354,7 @@ public class ExcelService {
             Long campaignId = ((Number) result[4]).longValue();
             String campaignName = (String) result[5];
             String campaignCode = (String) result[6];
-            Long categoryId = ((Number) result[7]).longValue();
+            Long categoryId = (result[7] != null) ? ((Number) result[7]).longValue() : null;
             String categoryName = (String) result[8];
 
             CampaignCategoryDTO dto = new CampaignCategoryDTO(ankenName, accountName, accountCode, media,
@@ -352,8 +369,10 @@ public class ExcelService {
         try(XSSFWorkbook workbook = new XSSFWorkbook()) {
             Sheet ankenList = workbook.createSheet("Anken List");
             Sheet accountCategory = workbook.createSheet("Category_Account");
-            writeSheetAnkenList(ankenList);
-            writeSheetAccountCategory(workbook, accountCategory);
+            Sheet campaignCategory = workbook.createSheet("Category_Campaign");
+            int ankenListSize = writeSheetAnkenList(ankenList);
+            writeSheetAccountCategory(workbook, accountCategory, ankenListSize);
+            writeSheetCampaignCategory(workbook, campaignCategory, ankenListSize);
             // Write to an output file
             try (FileOutputStream fileOut = new FileOutputStream("example_with_multiple_tables.xlsx")) {
                 workbook.write(fileOut);
@@ -373,7 +392,7 @@ public class ExcelService {
         }
     }
 
-    public void writeSheetAnkenList(Sheet sheet) {
+    public int writeSheetAnkenList(Sheet sheet) {
         List<Anken> ankenList = this.ankenService.getAll();
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Anken Id");
@@ -384,9 +403,9 @@ public class ExcelService {
             row.createCell(0).setCellValue(anken.getId());
             row.createCell(1).setCellValue(anken.getName());
         }
+        return ankenList.size();
     }
-    public void writeSheetAccountCategory(XSSFWorkbook workbook, Sheet sheet) {
-//        Sheet sheet = workbook.createSheet("Category_Account");
+    public void writeSheetAccountCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize) {
         int index = 0;
         Map<String, Integer> table1 = new HashMap<>();
         Map<String, Integer> table2 = new HashMap<>();
@@ -401,8 +420,6 @@ public class ExcelService {
         for(String s : tableCategoryAccountHeader) {
             table2.put(s, index++);
         }
-//        System.out.println(headerCategoryTable);
-//        System.out.println(headerCategoryAccountTable);
         // Table 1
         Row headerRow = sheet.createRow(0);
         for(Map.Entry<String, Integer> entry : table1.entrySet()) {
@@ -422,9 +439,11 @@ public class ExcelService {
         int rowCount = 1;
         List<ResCategoryInExcel> listCategory = this.getCategory(ETypeCategory.ACCOUNT);
         List<AccountCategoryDTO> listAccountCategory = this.getAccountCategory();
-        for(ResCategoryInExcel data : listCategory) {
+        int rowMax = Math.max(listCategory.size(), listAccountCategory.size());
+        for(int i = 1; i <= rowMax; i++) {
             Row row = sheet.createRow(rowCount);
             if(rowCount <= listCategory.size()) {
+                ResCategoryInExcel data = listCategory.get(rowCount - 1);
                 LocalDate startDate = data.getStartDate(); // Example LocalDate
                 LocalDate endDate = data.getEndDate();
 
@@ -467,5 +486,131 @@ public class ExcelService {
             }
             rowCount++;
         }
+
+        // Đặt tên cho vùng dữ liệu, để sử dụng trong validation
+        Name name = workbook.createName();
+        name.setNameName("AnkenList");
+        name.setRefersToFormula("Anken List!$B$2:$B$" + ankenListSize + 1);
+        // Thêm dữ liệu Validation vào các ô muốn tạo dropdown (ví dụ: B1 tới B10)
+        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
+        DataValidationConstraint constraintAnkenName = validationHelper.createFormulaListConstraint("AnkenList");
+
+        CellRangeAddressList addressList = new CellRangeAddressList(1, listCategory.size(),0 , 0); // B1 to B10
+        DataValidation validation = validationHelper.createValidation(constraintAnkenName, addressList);
+        sheet.addValidationData(validation);
+
+        DataValidationConstraint constraintActionValues = validationHelper.createExplicitListConstraint(actionsValues);
+        addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Action") , table1.get("Action")); // B1 to B10
+        validation = validationHelper.createValidation(constraintActionValues, addressList);
+        sheet.addValidationData(validation);
+
+        addressList = new CellRangeAddressList(1, listAccountCategory.size(), table2.get("Action") , table2.get("Action")); // B1 to B10
+        validation = validationHelper.createValidation(constraintActionValues, addressList);
+        sheet.addValidationData(validation);
+    }
+
+    public void writeSheetCampaignCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize) {
+        int index = 0;
+        Map<String, Integer> table1 = new HashMap<>();
+        Map<String, Integer> table2 = new HashMap<>();
+        String[] tableCategoryHeader = {"Anken Name", "Category Id", "Category Name", "Budget", "Type of KPI",
+                "KPI Goal", "Start Date", "End Date", "Action"};
+        String[] tableCampaignCategoryHeader = {"Anken Name", "Account Name", "Account Code",
+                "Media", "Campaign Id","Campaign Name", "Campaign Code", "Category Id", "Category Name", "Action"};
+        for(String s : tableCategoryHeader) {
+            table1.put(s, index++);
+        }
+        index++;
+        for(String s : tableCampaignCategoryHeader) {
+            table2.put(s, index++);
+        }
+        // Table 1
+        Row headerRow = sheet.createRow(0);
+        for(Map.Entry<String, Integer> entry : table1.entrySet()) {
+            Cell headerCell = headerRow.createCell(entry.getValue());
+            headerCell.setCellValue(entry.getKey());
+        }
+        // Table 2
+        for(Map.Entry<String, Integer> entry : table2.entrySet()) {
+            Cell headerCell = headerRow.createCell(entry.getValue());
+            headerCell.setCellValue(entry.getKey());
+        }
+
+        CellStyle dateCellStyle = workbook.createCellStyle();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("yyyy/MM/dd"));
+
+        int rowCount = 1;
+        List<ResCategoryInExcel> listCategory = this.getCategory(ETypeCategory.CAMPAIGN);
+        List<CampaignCategoryDTO> listCampaignCategory = this.getCampaignCategoryDetails();
+        int rowMax = Math.max(listCategory.size(), listCampaignCategory.size());
+        for(int i = 1; i <= rowMax; i++) {
+            Row row = sheet.createRow(rowCount);
+            if(rowCount <= listCategory.size()) {
+                ResCategoryInExcel data = listCategory.get(rowCount - 1);
+                LocalDate startDate = data.getStartDate(); // Example LocalDate
+                LocalDate endDate = data.getEndDate();
+
+                if(startDate != null) {
+                    Date startDateUtil = java.util.Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    Cell startDateCell = row.createCell(table1.get("Start Date"));
+                    startDateCell.setCellStyle(dateCellStyle);
+                    startDateCell.setCellValue(startDateUtil);
+                }
+
+                if(endDate != null) {
+                    Date endDateUtil = java.util.Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    Cell endDateCell = row.createCell(table1.get("End Date"));
+                    endDateCell.setCellValue(endDateUtil);
+                    endDateCell.setCellStyle(dateCellStyle);
+                }
+
+                row.createCell(table1.get("Anken Name")).setCellValue(data.getNameAnken());
+                row.createCell(table1.get("Category Id")).setCellValue(data.getCategoryId());
+                row.createCell(table1.get("Category Name")).setCellValue(data.getCategoryName());
+                row.createCell(table1.get("Budget")).setCellValue(data.getBudget());
+                row.createCell(table1.get("KPI Goal")).setCellValue(data.getKpiGoal());
+                String typeOfKPI = (data.getTypeOfKPI() != null) ? data.getTypeOfKPI().toString() : "";
+                row.createCell(table1.get("Type of KPI")).setCellValue(typeOfKPI);
+                row.createCell(table1.get("Action")).setCellValue("None");
+            }
+
+            if(rowCount <= listCampaignCategory.size()) {
+                CampaignCategoryDTO campaignCategoryDTO = listCampaignCategory.get(rowCount - 1);
+                row.createCell(table2.get("Anken Name")).setCellValue(campaignCategoryDTO.getAnkenName());
+                row.createCell(table2.get("Account Name")).setCellValue(campaignCategoryDTO.getAccountName());
+                row.createCell(table2.get("Account Code")).setCellValue(campaignCategoryDTO.getAccountCode());
+                row.createCell(table2.get("Media")).setCellValue(campaignCategoryDTO.getMedia());
+                row.createCell(table2.get("Campaign Id")).setCellValue(campaignCategoryDTO.getCampaignId());
+                row.createCell(table2.get("Campaign Name")).setCellValue(campaignCategoryDTO.getCampaignName());
+                row.createCell(table2.get("Campaign Code")).setCellValue(campaignCategoryDTO.getCampaignName());
+                if(campaignCategoryDTO.getCategoryId() != null) {
+                    row.createCell(table2.get("Category Id")).setCellValue(campaignCategoryDTO.getCategoryId());
+                }
+                row.createCell(table2.get("Category Name")).setCellValue(campaignCategoryDTO.getCategoryName());
+                row.createCell(table2.get("Action")).setCellValue("None");
+            }
+            rowCount++;
+        }
+        // Đặt tên cho vùng dữ liệu, để sử dụng trong validation
+//        Name name = workbook.createName();
+//        name.setNameName("AnkenList");
+//        name.setRefersToFormula("Anken List!$B$2:$B$" + ankenListSize + 1);
+        // Thêm dữ liệu Validation vào các ô muốn tạo dropdown (ví dụ: B1 tới B10)
+        DataValidationHelper validationHelper = sheet.getDataValidationHelper();
+        DataValidationConstraint constraintAnkenName = validationHelper.createFormulaListConstraint("AnkenList");
+
+        CellRangeAddressList addressList = new CellRangeAddressList(1, listCategory.size(),0 , 0); // B1 to B10
+        DataValidation validation = validationHelper.createValidation(constraintAnkenName, addressList);
+        sheet.addValidationData(validation);
+
+        DataValidationConstraint constraintActionValues = validationHelper.createExplicitListConstraint(actionsValues);
+        addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Action") , table1.get("Action")); // B1 to B10
+        validation = validationHelper.createValidation(constraintActionValues, addressList);
+        sheet.addValidationData(validation);
+
+        addressList = new CellRangeAddressList(1, listCampaignCategory.size(), table2.get("Action") , table2.get("Action")); // B1 to B10
+        validation = validationHelper.createValidation(constraintActionValues, addressList);
+        sheet.addValidationData(validation);
     }
 }
