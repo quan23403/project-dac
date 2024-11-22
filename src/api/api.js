@@ -10,3 +10,7 @@ export const updateCategory = async (formData) => {
 export const deleteCategory = async (id) => {
   return await axios.delete(`http://localhost:8080/category/${id}`);
 };
+
+export const getAllAnken = async () => {
+  return await axios.get("http://localhost:8080/anken");
+};

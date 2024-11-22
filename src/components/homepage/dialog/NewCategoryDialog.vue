@@ -56,7 +56,12 @@
           label="Types of KPI"
           required
         ></v-select>
-
+        <v-select
+          v-model="newItem.kpiType"
+          :items="kpiTypeOptions"
+          label="Anken Name"
+          required
+        ></v-select>
         <!-- Trường KPI Goal -->
         <v-text-field
           v-model="newItem.kpiGoal"
@@ -91,6 +96,7 @@ const newItem = ref({
   budget: 0,
   kpiType: "",
   kpiGoal: 0,
+  ankenName: "",
 });
 
 const createCategoryFunction = async () => {
