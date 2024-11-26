@@ -15,7 +15,6 @@
                   label="First Name"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
-                  class="mb-4"
                 ></v-text-field>
                 <v-text-field
                   v-model="lastName"
@@ -23,7 +22,6 @@
                   label="Last Name"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
-                  class="mb-4"
                 ></v-text-field>
                 <v-text-field
                   v-model="email"
@@ -31,7 +29,6 @@
                   label="Email"
                   prepend-inner-icon="mdi-email"
                   variant="outlined"
-                  class="mb-4"
                 ></v-text-field>
                 <v-text-field
                   v-model="password"
@@ -42,7 +39,6 @@
                   @click:append-inner="showPassword = !showPassword"
                   :type="showPassword ? 'text' : 'password'"
                   variant="outlined"
-                  class="mb-4"
                 ></v-text-field>
                 <v-text-field
                   v-model="confirmPassword"
@@ -51,7 +47,6 @@
                   prepend-inner-icon="mdi-lock-check"
                   :type="showPassword ? 'text' : 'password'"
                   variant="outlined"
-                  class="mb-4"
                 ></v-text-field>
                 <v-btn
                   block

@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <v-dialog v-model="dialog" max-width="500px">
     <v-card>
       <v-card-title>
@@ -43,4 +43,4 @@ const closeDialog = () => {
 const save = () => {
   emit("saveItem", props.editedItem);
 };
-</script>
+</script> -->

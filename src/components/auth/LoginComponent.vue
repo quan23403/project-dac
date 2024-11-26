@@ -51,7 +51,12 @@
                 >
                   Forgot Password?
                 </v-btn>
-                <v-btn variant="text"> Sign Up </v-btn>
+                <v-btn
+                  @click="this.$router.push({ name: 'Register' })"
+                  variant="text"
+                >
+                  Sign Up
+                </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>

@@ -1,15 +1,28 @@
 <template>
   <v-card class="mt-5">
-    <v-card-title>
-      Category
-      <v-spacer></v-spacer>
+    <v-card-title class="d-flex align-center">
+      <!-- Cột tìm kiếm -->
       <v-text-field
         v-model="search"
         append-icon="mdi-magnify"
         label="Search"
-        single-line
+        outlined
         hide-details
+        class="mr-6"
+        dense
+        style="max-width: 300px"
       ></v-text-field>
+
+      <!-- Dropdown chọn loại category -->
+      <v-select
+        v-model="search"
+        :items="typeCategoryOptions"
+        label="Category"
+        outlined
+        dense
+        class="mt-5"
+        style="max-width: 200px"
+      ></v-select>
     </v-card-title>
     <v-data-table :headers="headers" :items="categories" :search="search">
       <template v-slot:top>
@@ -18,7 +31,10 @@
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <!-- New Category Dialog -->
-          <NewCategoryDialog @create-success="needReload = true" />
+          <NewCategoryDialog
+            @create-success="needReload = true"
+            :options="ankenOptions"
+          />
 
           <v-dialog v-model="dialogEdit" max-width="500px">
             <v-card>
@@ -70,6 +86,13 @@
                   v-model="editedItem.kpiType"
                   :items="kpiTypeOptions"
                   label="Types of KPI"
+                  required
+                ></v-select>
+
+                <v-select
+                  v-model="editedItem.ankenName"
+                  :items="ankenOptions.map((option) => option.name)"
+                  label="Anken Name"
                   required
                 ></v-select>
 
@@ -133,26 +156,27 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import axios from "axios";
 import NewCategoryDialog from "./dialog/NewCategoryDialog.vue";
-import { updateCategory, deleteCategory } from "@/api/api";
+import { updateCategory, deleteCategory, getAllAnken } from "@/api/api";
 
-const search = ref("");
+const search = ref();
 const dialogDelete = ref(false);
 const dialogEdit = ref(false);
 const categories = ref();
 const errorMsg = ref("");
 const needReload = ref(false);
-
+const ankenOptions = ref();
 const headers = [
+  { title: "Anken Name", align: "start", key: "ankenName" },
   { title: "Name", align: "start", key: "name" },
   { title: "Type Category", key: "typeCategory" },
   { title: "Budget", key: "budget" },
-  { title: "Start Date", key: "startDate" },
-  { title: "End Date", key: "endDate" },
   { title: "KPI Type", key: "kpiType" },
   { title: "KPI Goal", key: "kpiGoal" },
+  { title: "Start Date", key: "startDate" },
+  { title: "End Date", key: "endDate" },
   { title: "Action", key: "actions" },
 ];
 
@@ -190,7 +214,25 @@ const fetchCategories = async () => {
     console.error("Lỗi khi lấy thông tin:", error);
   }
 };
+
+const getAllAnkenFunction = async () => {
+  try {
+    const response = await getAllAnken();
+    ankenOptions.value = response.data;
+  } catch (error) {
+    // Xử lý lỗi
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Lấy Anken Name thất bại:
+          ${error.response.data.message || error.message}`;
+    } else {
+      errorMsg.value = `Lấy Anken Name thất bại: ${error.message}`;
+    }
+  }
+};
+
 onMounted(() => {
+  getAllAnkenFunction();
   fetchCategories(); // Gọi hàm lấy thông tin khi component được mount
 });
 
@@ -210,6 +252,7 @@ const editedItem = ref({
   budget: 0,
   kpiType: "",
   kpiGoal: 0,
+  ankenName: "",
 });
 
 const updateCategoryFunction = async () => {

@@ -1,20 +1,24 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import CategoryTable from "@/components/homepage/CategoryTable.vue";
+import MainLayout from "@/layouts/MainLayout.vue";
 
 const routes = [
   {
     path: "/",
     name: "Home",
-    component: HomeView,
+    component: CategoryTable,
+    meta: {
+      layout: MainLayout, // Gán layout cho trang login
+    },
   },
   {
     path: "/about",
     name: "About",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+    meta: {
+      layout: MainLayout, // Gán layout cho trang login
+    },
   },
   {
     path: "/login",
@@ -25,6 +29,22 @@ const routes = [
     path: "/register",
     name: "Register",
     component: () => import("../views/auth/RegisterView.vue"),
+  },
+  {
+    path: "/acc-cate",
+    name: "AccountCategory",
+    component: () => import("../components/acc-cate-page/AccCateTable.vue"),
+    meta: {
+      layout: MainLayout,
+    },
+  },
+  {
+    path: "/cam-cate",
+    name: "CampaignCategory",
+    component: () => import("../components/cam-cate-page/CamCateTable.vue"),
+    meta: {
+      layout: MainLayout,
+    },
   },
 ];
 

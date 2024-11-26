@@ -57,8 +57,8 @@
           required
         ></v-select>
         <v-select
-          v-model="newItem.kpiType"
-          :items="kpiTypeOptions"
+          v-model="newItem.ankenName"
+          :items="props.options.map((option) => option.name)"
           label="Anken Name"
           required
         ></v-select>
@@ -81,9 +81,18 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { createCategory } from "@/api/api";
-import { defineEmits } from "vue";
+import { onMounted, ref } from "vue";
+import { createCategory, getAllAnken } from "@/api/api";
+import { defineEmits, defineProps } from "vue";
+
+const props = defineProps({
+  options: {
+    type: Array,
+    required: true,
+    default: () => [], // Giá trị mặc định là mảng rỗng
+  },
+});
+
 const dialog = ref(false);
 const errorMsg = ref("");
 const typeCategoryOptions = ["ACCOUNT", "CAMPAIGN"];
@@ -118,6 +127,7 @@ const createCategoryFunction = async () => {
     }
   }
 };
+
 const emit = defineEmits();
 // Methods
 const closeDialog = () => {

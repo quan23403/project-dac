@@ -4,7 +4,7 @@
     <SideNavigation :drawer="drawer" :items="navigationItems" />
     <v-main>
       <v-container fluid>
-        <CategoryTable />
+        <router-view></router-view>
       </v-container>
     </v-main>
   </v-app>
@@ -12,17 +12,20 @@
 
 <script setup>
 import { ref } from "vue";
-import SideNavigation from "./SideNavigation.vue";
-import TopBar from "./TopBar.vue";
-import CategoryTable from "./CategoryTable.vue";
+import SideNavigation from "@/components/homepage/SideNavigation.vue";
+import TopBar from "@/components/homepage/TopBar.vue";
 
 const drawer = ref(null);
 
 const navigationItems = [
-  { title: "Dashboard", icon: "mdi-view-dashboard", to: "/" },
-  { title: "Users", icon: "mdi-account-group", to: "/users" },
-  { title: "Products", icon: "mdi-package-variant-closed", to: "/products" },
-  { title: "Orders", icon: "mdi-cart", to: "/orders" },
+  { title: "Category", icon: "mdi-view-dashboard", to: "/" },
+  { title: "Account-Category", icon: "mdi-account-group", to: "/acc-cate" },
+  {
+    title: "Campaign-Category",
+    icon: "mdi-package-variant-closed",
+    to: "/cam-cate",
+  },
+  { title: "Import/Export File", icon: "mdi-cart", to: "/orders" },
   { title: "Reports", icon: "mdi-chart-bar", to: "/reports" },
   { title: "Settings", icon: "mdi-cog", to: "/settings" },
 ];

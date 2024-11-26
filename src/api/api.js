@@ -14,3 +14,22 @@ export const deleteCategory = async (id) => {
 export const getAllAnken = async () => {
   return await axios.get("http://localhost:8080/anken");
 };
+
+export const getAllCategoryAccount = async () => {
+  return await axios.get("http://localhost:8080/category/account-category");
+};
+
+export const getAllCategoryCampaign = async () => {
+  return await axios.get("http://localhost:8080/category/campaign-category");
+};
+
+export const updateAccountCategoryDetails = async (formData) => {
+  return await axios.post("http://localhost:8080/category-binding", formData);
+};
+
+export const deleteCategoryBinding = async (formData) => {
+  return await axios.post(
+    "http://localhost:8080/category-binding/delete",
+    formData
+  );
+};
