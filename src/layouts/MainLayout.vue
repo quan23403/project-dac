@@ -25,7 +25,7 @@ const navigationItems = [
     icon: "mdi-package-variant-closed",
     to: "/cam-cate",
   },
-  { title: "Import/Export File", icon: "mdi-cart", to: "/orders" },
+  { title: "Import/Export File", icon: "mdi-cart", to: "/import-export-file" },
   { title: "Reports", icon: "mdi-chart-bar", to: "/reports" },
   { title: "Settings", icon: "mdi-cog", to: "/settings" },
 ];

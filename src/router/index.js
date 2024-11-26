@@ -46,6 +46,15 @@ const routes = [
       layout: MainLayout,
     },
   },
+  {
+    path: "/import-export-file",
+    name: "ImportExportPage",
+    component: () =>
+      import("../components/import-export-file/ImportExportScreen.vue"),
+    meta: {
+      layout: MainLayout,
+    },
+  },
 ];
 
 const router = createRouter({
