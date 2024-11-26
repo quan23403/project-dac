@@ -1,0 +1,278 @@
+<template>
+  <v-card class="mt-5">
+    <v-card-title>
+      Category
+      <v-spacer></v-spacer>
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
+    </v-card-title>
+    <v-data-table :headers="headers" :items="categories" :search="search">
+      <template v-slot:top>
+        <v-toolbar flat>
+          <v-toolbar-title>Category Management</v-toolbar-title>
+          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-spacer></v-spacer>
+          <!-- New Category Dialog -->
+          <NewCategoryDialog @create-success="needReload = true" />
+
+          <v-dialog v-model="dialogEdit" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="text-h5">Edit Category</span>
+              </v-card-title>
+              <v-card-text>
+                <!-- Trường Name -->
+                <v-text-field
+                  v-model="editedItem.name"
+                  label="Name"
+                  required
+                ></v-text-field>
+
+                <!-- Trường Type Category -->
+                <v-select
+                  v-model="editedItem.typeCategory"
+                  :items="typeCategoryOptions"
+                  label="Type"
+                  required
+                ></v-select>
+
+                <!-- Trường Budget -->
+                <v-text-field
+                  v-model="editedItem.budget"
+                  label="Budget"
+                  type="number"
+                  required
+                ></v-text-field>
+
+                <!-- Trường Start Date -->
+                <v-date-input
+                  v-model="editedItem.startDate"
+                  label="Start Date"
+                  variant="outlined"
+                  persistent-placeholder
+                ></v-date-input>
+
+                <!-- Trường End Date -->
+                <v-date-input
+                  v-model="editedItem.endDate"
+                  label="End Date"
+                  variant="outlined"
+                  persistent-placeholder
+                ></v-date-input>
+
+                <!-- Trường KPI Type -->
+                <v-select
+                  v-model="editedItem.kpiType"
+                  :items="kpiTypeOptions"
+                  label="Types of KPI"
+                  required
+                ></v-select>
+
+                <!-- Trường KPI Goal -->
+                <v-text-field
+                  v-model="editedItem.kpiGoal"
+                  label="KPI Goal"
+                  type="number"
+                  required
+                ></v-text-field>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="closeUpdate"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="updateCategoryFunction"
+                >
+                  Save
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="dialogDelete" max-width="500px">
+            <v-card>
+              <v-card-title class="text-h5"
+                >Are you sure you want to delete this item?</v-card-title
+              >
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue-darken-1" variant="text" @click="closeDelete"
+                  >Cancel</v-btn
+                >
+                <v-btn
+                  color="blue-darken-1"
+                  variant="text"
+                  @click="deleteCategoryFunction()"
+                  >OK</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-icon size="small" class="me-2" @click="editItem(item)">
+          mdi-pencil
+        </v-icon>
+        <v-icon size="small" @click="deleteItem(item.id)"> mdi-delete </v-icon>
+      </template>
+    </v-data-table>
+  </v-card>
+</template>
+
+<script setup>
+import { ref, watch, onMounted } from "vue";
+import axios from "axios";
+import NewCategoryDialog from "./dialog/NewCategoryDialog.vue";
+import { updateCategory, deleteCategory } from "@/api/api";
+
+const search = ref("");
+const dialogDelete = ref(false);
+const dialogEdit = ref(false);
+const categories = ref();
+const errorMsg = ref("");
+const needReload = ref(false);
+
+const headers = [
+  { title: "Name", align: "start", key: "name" },
+  { title: "Type Category", key: "typeCategory" },
+  { title: "Budget", key: "budget" },
+  { title: "Start Date", key: "startDate" },
+  { title: "End Date", key: "endDate" },
+  { title: "KPI Type", key: "kpiType" },
+  { title: "KPI Goal", key: "kpiGoal" },
+  { title: "Action", key: "actions" },
+];
+
+const typeCategoryOptions = ["ACCOUNT", "CAMPAIGN"];
+const kpiTypeOptions = ["IMP", "CPC", "CPV"];
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/category");
+    // Xử lý dữ liệu ngày tháng khi nhận từ API
+    categories.value = response.data.map((category) => {
+      // Chuyển mảng ngày tháng thành đối tượng Date
+      if (Array.isArray(category.endDate)) {
+        category.endDate = formatDate(
+          new Date(
+            category.endDate[0],
+            category.endDate[1] - 1,
+            category.endDate[2]
+          )
+        );
+      }
+      if (Array.isArray(category.startDate)) {
+        category.startDate = formatDate(
+          new Date(
+            category.startDate[0],
+            category.startDate[1] - 1,
+            category.startDate[2]
+          )
+        );
+      }
+      return category;
+    });
+    console.log(categories.value); // Kiểm tra dữ liệu sau khi xử lý
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin:", error);
+  }
+};
+onMounted(() => {
+  fetchCategories(); // Gọi hàm lấy thông tin khi component được mount
+});
+
+const formatDate = (date) => {
+  if (!(date instanceof Date)) return "";
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${year}-${month}-${day}`;
+};
+
+const editedItem = ref({
+  name: "",
+  typeCategory: "",
+  startDate: new Date(),
+  endDate: new Date(),
+  budget: 0,
+  kpiType: "",
+  kpiGoal: 0,
+});
+
+const updateCategoryFunction = async () => {
+  try {
+    const response = await updateCategory(editedItem.value);
+    console.log(response.data);
+    alert("Update Successfully");
+    dialogEdit.value = false;
+    needReload.value = true;
+  } catch (error) {
+    // Xử lý lỗi
+    console.log(error);
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Update thất bại:
+          ${error.response.data.message || error.message}`;
+    } else {
+      errorMsg.value = `Update thất bại: ${error.message}`;
+    }
+  }
+};
+
+function editItem(item) {
+  editedItem.value = item;
+  dialogEdit.value = true;
+}
+
+const deleteId = ref();
+function deleteItem(id) {
+  dialogDelete.value = true;
+  deleteId.value = id;
+}
+
+const deleteCategoryFunction = async () => {
+  try {
+    const response = await deleteCategory(deleteId.value);
+    console.log(response.data);
+    alert("Delete Successfully");
+    dialogDelete.value = false;
+    needReload.value = true;
+  } catch (error) {
+    // Xử lý lỗi
+    console.log(error);
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Delete thất bại:
+          ${error.response.data.message || error.message}`;
+    } else {
+      errorMsg.value = `Delete thất bại: ${error.message}`;
+    }
+  }
+};
+function closeUpdate() {
+  dialogEdit.value = false;
+}
+function closeDelete() {
+  dialogDelete.value = false;
+}
+
+watch(needReload, (newValue) => {
+  if (newValue) {
+    fetchCategories(); // Gọi lại hàm fetchUsers khi needReload thay đổi
+    needReload.value = false;
+  }
+});
+</script>
