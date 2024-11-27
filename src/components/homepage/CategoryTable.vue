@@ -71,6 +71,7 @@
                   label="Start Date"
                   variant="outlined"
                   persistent-placeholder
+                  format="yyyy-MM-dd"
                 ></v-date-input>
 
                 <!-- Trường End Date -->
@@ -79,6 +80,7 @@
                   label="End Date"
                   variant="outlined"
                   persistent-placeholder
+                  format="yyyy-MM-dd"
                 ></v-date-input>
 
                 <!-- Trường KPI Type -->
@@ -257,8 +259,14 @@ const editedItem = ref({
 
 const updateCategoryFunction = async () => {
   try {
-    const response = await updateCategory(editedItem.value);
-    console.log(response.data);
+    const formData = { ...editedItem.value };
+    console.log(formData);
+
+    // console.log(formatDate(editedItem.value.startDate));
+    formData.startDate = formatDate(editedItem.value.startDate);
+    formData.endDate = formatDate(editedItem.value.endDate);
+    const response = await updateCategory(formData);
+    console.log(editedItem.value);
     alert("Update Successfully");
     dialogEdit.value = false;
     needReload.value = true;
@@ -276,7 +284,10 @@ const updateCategoryFunction = async () => {
 };
 
 function editItem(item) {
-  editedItem.value = item;
+  const temp = { ...item };
+  temp.startDate = new Date(item.startDate);
+  temp.endDate = new Date(item.endDate);
+  editedItem.value = temp;
   dialogEdit.value = true;
 }
 

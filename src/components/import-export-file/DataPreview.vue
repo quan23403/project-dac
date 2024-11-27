@@ -29,10 +29,13 @@ import { ref, onMounted, defineProps } from "vue";
 import axios from "axios";
 const props = defineProps(["file"]);
 const activeTab = ref();
+const categoryData = ref();
+const categoryAccountData = ref();
+const categoryCampaignData = ref();
+
 const tabs = ref([
   {
     name: "Category",
-    apiUrl: "http://localhost:8080/excel/preview/category",
     headers: [
       { title: "Anken Name", align: "start", key: "ankenName" },
       { title: "Category Id", key: "categoryId" },
@@ -45,13 +48,12 @@ const tabs = ref([
       { title: "End Date", key: "endDate" },
       { title: "Action", key: "action" },
     ],
-    data: ref(),
+    data: categoryData,
     loading: false,
     searchQuery: "",
   },
   {
     name: "Account-Category",
-    apiUrl: "http://localhost:8080/excel/preview/category",
     headers: [
       { title: "Anken Name", align: "start", key: "ankenName" },
       { title: "Account Id", key: "accountId" },
@@ -60,64 +62,65 @@ const tabs = ref([
       { title: "Media", key: "media" },
       { title: "Category Id", key: "categoryId" },
       { title: "Category Name", key: "categoryName" },
+      { title: "Action", key: "action" },
     ],
-    data: ref(),
+    data: categoryAccountData,
     loading: false,
     searchQuery: "",
   },
   {
     name: "Campaign-Category",
-    apiUrl: "http://localhost:8080/category-binding/account-category",
     headers: [
       { title: "Anken Name", align: "start", key: "ankenName" },
-      { title: "Cmpaign Id", key: "accountId" },
       { title: "Account Name", key: "accountName" },
       { title: "Account Code", key: "accountCode" },
       { title: "Media", key: "media" },
+      { title: "Campaign Id", key: "campaignId" },
+      { title: "Campaign Name", key: "campaignName" },
+      { title: "Campaign Code", key: "campaignCode" },
       { title: "Category Id", key: "categoryId" },
       { title: "Category Name", key: "categoryName" },
+      { title: "Action", key: "action" },
     ],
-    data: ref(),
+    data: categoryCampaignData,
     loading: false,
     searchQuery: "",
   },
 ]);
 const fetchTableData = async () => {
-  for (let tab of tabs.value) {
-    tab.loading = true; // Đánh dấu là đang tải dữ liệu
-    const formData = new FormData();
-    formData.append("file", props.file);
-    try {
-      const response = await axios.post(tab.apiUrl, formData);
-      console.log(response.data);
-      tab.data = response.data.map((category) => {
-        // Chuyển mảng ngày tháng thành đối tượng Date
-        if (Array.isArray(category.endDate)) {
-          category.endDate = formatDate(
-            new Date(
-              category.endDate[0],
-              category.endDate[1] - 1,
-              category.endDate[2]
-            )
-          );
-        }
-        if (Array.isArray(category.startDate)) {
-          category.startDate = formatDate(
-            new Date(
-              category.startDate[0],
-              category.startDate[1] - 1,
-              category.startDate[2]
-            )
-          );
-        }
-        return category;
-      });
-    } catch (error) {
-      console.error(`Error fetching data for ${tab.name}:`, error);
-      tab.data = []; // Nếu có lỗi, set dữ liệu là mảng rỗng
-    } finally {
-      tab.loading = false; // Đánh dấu là đã tải xong
-    }
+  const formData = new FormData();
+  formData.append("file", props.file);
+  try {
+    const response = await axios.post(
+      "http://localhost:8080/excel/preview/category",
+      formData
+    );
+    categoryData.value = response.data[0].data.map((category) => {
+      // Chuyển mảng ngày tháng thành đối tượng Date
+      if (Array.isArray(category.endDate)) {
+        category.endDate = formatDate(
+          new Date(
+            category.endDate[0],
+            category.endDate[1] - 1,
+            category.endDate[2]
+          )
+        );
+      }
+      if (Array.isArray(category.startDate)) {
+        category.startDate = formatDate(
+          new Date(
+            category.startDate[0],
+            category.startDate[1] - 1,
+            category.startDate[2]
+          )
+        );
+      }
+      return category;
+    });
+    categoryAccountData.value = response.data[1].data;
+    categoryCampaignData.value = response.data[2].data;
+  } catch (error) {
+    console.error(`Error fetching data from file`, error);
   }
 };
 
