@@ -51,6 +51,7 @@ public class Category {
     private Anken anken;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    @JsonIgnore
     List<CategoryBinding> categoryBindings;
 
     @PrePersist

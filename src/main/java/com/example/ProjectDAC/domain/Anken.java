@@ -20,11 +20,11 @@ public class Anken {
     @NotBlank(message = "Name's Anken can not be blank")
     private String name;
 
-    @OneToMany(mappedBy = "anken", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "anken")
     @JsonIgnore
     List<Account> accountList;
 
-    @OneToMany(mappedBy = "anken", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "anken")
     @JsonIgnore
     List<Category> categoryList;
 }

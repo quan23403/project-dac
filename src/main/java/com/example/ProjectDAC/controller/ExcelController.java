@@ -3,10 +3,16 @@ package com.example.ProjectDAC.controller;
 import com.example.ProjectDAC.response.ResCategoryInExcel;
 import com.example.ProjectDAC.service.ExcelService;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @RequestMapping("/excel")
@@ -15,33 +21,55 @@ public class ExcelController {
     public ExcelController(ExcelService excelService) {
         this.excelService = excelService;
     }
-    @PostMapping("/test/read-excel")
+    @PostMapping("/read-excel")
     public String readExcel(@RequestParam("file") MultipartFile file) {
         try {
-            excelService.readExcelSheetCategory(file);
+            excelService.readExcelSheet(file);
             return "Success";
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    @GetMapping("/test/write-excel-category")
+    @GetMapping("/write-excel-category")
     public List<ResCategoryInExcel> writeCategoryExcel() {
         return excelService.getCategory(ETypeCategory.CAMPAIGN);
     }
 
     @GetMapping("/export")
-    public String exportExcel() {
-        this.excelService.exportData();
-        return "Export Successfully";
-    }
-//    @GetMapping("/test/write-excel")
-//    public List<AccountCategoryDTO> writeExcel() {
-//        return excelService.getAccountCategory();
-//    }
+    public void exportExcel(HttpServletResponse response) {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
 
-//    @GetMapping("/test/write-excel")
-//    public void writeExcel() {
-//        this.excelService.writeSheetAccountCategory();
-//    }
+        String headerValue = "attachment; filename=users_" + currentDateTime + ".xlsx";
+        response.setHeader("Content-Disposition", headerValue);
+        this.excelService.exportData(response);
+    }
+
+    @PostMapping("/preview")
+    public ResponseEntity<List<Map<String, Object>>> getCategoryPreview(@RequestParam("file") MultipartFile file) {
+        try{
+            Map<String, Object> categoryActions = new HashMap<>();
+            categoryActions.put("name", "Category");
+            categoryActions.put("data", this.excelService.getCategoryActionPreview(file));
+
+            Map<String, Object> categoryAccountActions = new HashMap<>();
+            categoryAccountActions.put("name", "Category-Account");
+            categoryAccountActions.put("data", this.excelService.getCategoryAccountActionPreview(file));
+
+            Map<String, Object> categoryCampaignActions = new HashMap<>();
+            categoryCampaignActions.put("name", "Category-Campaign");
+            categoryCampaignActions.put("data", this.excelService.getCategoryCampaignActionPreview(file));
+
+            List<Map<String, Object>> response = new ArrayList<>();
+            response.add(categoryActions);
+            response.add(categoryAccountActions);
+            response.add(categoryCampaignActions);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -2,19 +2,20 @@ package com.example.ProjectDAC.service;
 
 import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.domain.Category;
+import com.example.ProjectDAC.domain.dto.ResCategoryDTO;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.repository.AnkenRepository;
 import com.example.ProjectDAC.repository.CategoryRepository;
 import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.util.constant.EStatus;
+import com.example.ProjectDAC.util.constant.ETypeCategory;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -28,11 +29,11 @@ public class CategoryService {
     }
     public Category create(CreateCategoryRequest request) throws IdInvalidException {
         Category category = new Category();
-        if(request.getNameAnken() != null) {
-            Anken anken = this.ankenRepository.findByName(request.getNameAnken());
+        if(request.getAnkenName() != null) {
+            Anken anken = this.ankenRepository.findByName(request.getAnkenName());
             if(anken == null) {
                 Anken newAnken = new Anken();
-                newAnken.setName(request.getNameAnken());
+                newAnken.setName(request.getAnkenName());
                 anken = this.ankenService.create(newAnken);
             }
             category.setAnken(anken);
@@ -55,10 +56,33 @@ public class CategoryService {
     public boolean isExistedCategoryById(long id) {
         return this.categoryRepository.existsById(id);
     }
-    public List<Category> getCategories() {
-        return this.categoryRepository.findByStatus(EStatus.ACTIVE);
+
+    public ResCategoryDTO convertCategory(Category category) {
+        ResCategoryDTO res = new ResCategoryDTO();
+        res.setId(category.getId());
+        res.setName(category.getName());
+        res.setBudget(category.getBudget());
+        res.setStartDate(category.getStartDate());
+        res.setEndDate(category.getEndDate());
+        res.setTypeCategory(category.getTypeCategory());
+        res.setKpiGoal(category.getKpiGoal());
+        res.setKpiType(category.getKpiType());
+        if(category.getAnken() != null) {
+            res.setAnkenName(category.getAnken().getName());
+        }
+        return res;
+    }
+    public List<ResCategoryDTO> getCategories() {
+        return this.categoryRepository.findByStatus(EStatus.ACTIVE)
+                .stream().map(this::convertCategory)
+                .collect(Collectors.toList());
     }
 
+    public List<ResCategoryDTO> getCategoriesByCategoryType(ETypeCategory typeCategory) {
+        return this.categoryRepository.findByStatusAndTypeCategory(EStatus.ACTIVE, typeCategory)
+                .stream().map(this::convertCategory)
+                .collect(Collectors.toList());
+    }
     public Optional<Category> getCategory(long id) {
         return this.categoryRepository.findById(id);
     }
@@ -78,6 +102,15 @@ public class CategoryService {
         category.setEndDate(request.getEndDate());
         category.setKpiType(request.getKpiType());
         category.setKpiGoal(request.getKpiGoal());
+        if(request.getAnkenName() != null) {
+            Anken anken = this.ankenRepository.findByName(request.getAnkenName());
+            if(anken == null) {
+                Anken newAnken = new Anken();
+                newAnken.setName(request.getAnkenName());
+                anken = this.ankenService.create(newAnken);
+            }
+            category.setAnken(anken);
+        }
         return this.categoryRepository.save(category);
     }
 
@@ -91,15 +124,15 @@ public class CategoryService {
         this.categoryRepository.deleteByName(name);
     }
 
-    public Category updateCategoryByName(UpdateCategoryRequest updateCategory) {
+    public void updateCategoryByName(UpdateCategoryRequest updateCategory) {
         Category categoryInDB = categoryRepository.findByName(updateCategory.getName());
 //        if(categoryInDB.getTypeCategory() != updateCategory.getTypeCategory()) {
 //            return null;
 //        }
-        Anken anken = this.ankenRepository.findByName(updateCategory.getNameAnken());
+        Anken anken = this.ankenRepository.findByName(updateCategory.getAnkenName());
         if(anken == null) {
             Anken newAnken = new Anken();
-            newAnken.setName(updateCategory.getNameAnken());
+            newAnken.setName(updateCategory.getAnkenName());
             anken = this.ankenService.create(newAnken);
         }
         categoryInDB.setAnken(anken);
@@ -109,7 +142,7 @@ public class CategoryService {
         categoryInDB.setStartDate(updateCategory.getStartDate());
         categoryInDB.setEndDate(updateCategory.getEndDate());
 
-        return this.categoryRepository.save(categoryInDB);
+        this.categoryRepository.save(categoryInDB);
     }
 
 }

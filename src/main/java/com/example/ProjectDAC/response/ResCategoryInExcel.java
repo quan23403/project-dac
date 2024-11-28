@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class ResCategoryInExcel {
-    private String nameAnken;
+    private String ankenName;
     private long categoryId;
     private String categoryName;
     private double budget;
@@ -19,7 +19,7 @@ public class ResCategoryInExcel {
     private LocalDate endDate;
 
     public ResCategoryInExcel(String nameAnken, long categoryId, String categoryName, double budget, EKpiType typeOfKPI, long kpiGoal, LocalDate startDate, LocalDate endDate) {
-        this.nameAnken = nameAnken;
+        this.ankenName = nameAnken;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
         this.budget = budget;
@@ -36,7 +36,7 @@ public class ResCategoryInExcel {
     @Override
     public String toString() {
         return "ResCategoryInExcel{" +
-                "nameAnken='" + nameAnken + '\'' +
+                "nameAnken='" + ankenName + '\'' +
                 ", categoryId=" + categoryId +
                 ", categoryName='" + categoryName + '\'' +
                 ", budget=" + budget +

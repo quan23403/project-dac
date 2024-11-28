@@ -17,5 +17,5 @@ public class UpdateCategoryRequest {
     private LocalDate endDate;
     private EKpiType kpiType;
     private long kpiGoal;
-    private String nameAnken;
+    private String ankenName;
 }

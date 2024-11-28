@@ -1,10 +1,13 @@
 package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.domain.Category;
+import com.example.ProjectDAC.domain.dto.ResCategoryBindingDTO;
+import com.example.ProjectDAC.domain.dto.ResCategoryDTO;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.service.CategoryService;
+import com.example.ProjectDAC.util.constant.ETypeCategory;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +40,8 @@ public class CategoryController {
     }
 
     @GetMapping("/category")
-    public ResponseEntity<List<Category>> getListCategories() {
-        List<Category> listCategory = this.categoryService.getCategories();
+    public ResponseEntity<List<ResCategoryDTO>> getListCategories() {
+        List<ResCategoryDTO> listCategory = this.categoryService.getCategories();
         return ResponseEntity.status(HttpStatus.OK).body(listCategory);
     }
 
@@ -69,5 +72,17 @@ public class CategoryController {
         }
         this.categoryService.delete(categoryInDB.get());
         return ResponseEntity.status(HttpStatus.OK).body("Delete Success");
+    }
+
+    @GetMapping("/category/account-category")
+    public ResponseEntity<List<ResCategoryDTO>> getCategoryAccount() {
+        List<ResCategoryDTO> res = this.categoryService.getCategoriesByCategoryType(ETypeCategory.ACCOUNT);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @GetMapping("/category/campaign-category")
+    public ResponseEntity<List<ResCategoryDTO>> getCategoryCampaign() {
+        List<ResCategoryDTO> res = this.categoryService.getCategoriesByCategoryType(ETypeCategory.CAMPAIGN);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 }
