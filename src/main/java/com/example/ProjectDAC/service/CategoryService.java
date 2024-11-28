@@ -72,8 +72,8 @@ public class CategoryService {
         }
         return res;
     }
-    public List<ResCategoryDTO> getCategories() {
-        return this.categoryRepository.findByStatus(EStatus.ACTIVE)
+    public List<ResCategoryDTO> getCategories(List<Long> ids) {
+        return this.categoryRepository.findByStatusAndAnkenIdIn(EStatus.ACTIVE, ids)
                 .stream().map(this::convertCategory)
                 .collect(Collectors.toList());
     }

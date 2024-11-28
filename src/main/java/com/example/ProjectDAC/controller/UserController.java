@@ -3,15 +3,14 @@ package com.example.ProjectDAC.controller;
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.domain.dto.ResUserDTO;
+import com.example.ProjectDAC.request.UpdateCategoryRequest;
+import com.example.ProjectDAC.request.UpdateUserRequest;
 import com.example.ProjectDAC.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
@@ -36,5 +35,11 @@ public class UserController {
         user.setPassword(hashPassword);
         ResUserDTO newUser = this.userService.create(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    }
+
+    @PutMapping("/users")
+    public ResponseEntity<ResUserDTO> update(@RequestBody UpdateUserRequest request) throws IdInvalidException {
+        ResUserDTO res = this.userService.updateUser(request);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 }

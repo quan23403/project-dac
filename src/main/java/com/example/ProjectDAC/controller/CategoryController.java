@@ -1,13 +1,17 @@
 package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.domain.Category;
+import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.domain.dto.ResCategoryBindingDTO;
 import com.example.ProjectDAC.domain.dto.ResCategoryDTO;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.service.CategoryService;
+import com.example.ProjectDAC.service.UserService;
+import com.example.ProjectDAC.util.JwtUtils;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +23,12 @@ import java.util.Optional;
 @RestController
 public class CategoryController {
     private final CategoryService categoryService;
-    public CategoryController(CategoryService categoryService) {
+    private final UserService userService;
+    private final JwtUtils jwtUtils;
+    public CategoryController(CategoryService categoryService, UserService userService,JwtUtils jwtUtils) {
         this.categoryService = categoryService;
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
     }
     @PostMapping("/category")
     public ResponseEntity<Category> create(@Valid @RequestBody CreateCategoryRequest request) throws IdInvalidException {
@@ -40,8 +48,10 @@ public class CategoryController {
     }
 
     @GetMapping("/category")
-    public ResponseEntity<List<ResCategoryDTO>> getListCategories() {
-        List<ResCategoryDTO> listCategory = this.categoryService.getCategories();
+    public ResponseEntity<List<ResCategoryDTO>> getListCategories(HttpServletRequest request) throws IdInvalidException {
+        String token = request.getHeader("Authorization");
+        List<Long> ids = this.jwtUtils.getAnkenListFromToken(token);
+        List<ResCategoryDTO> listCategory = this.categoryService.getCategories(ids);
         return ResponseEntity.status(HttpStatus.OK).body(listCategory);
     }
 

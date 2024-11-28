@@ -5,6 +5,7 @@ import com.example.ProjectDAC.repository.AnkenRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AnkenService {
@@ -22,5 +23,9 @@ public class AnkenService {
 
     public List<Anken> getAll() {
         return this.ankenRepository.findAll();
+    }
+
+    public Optional<Anken> getAnkenById(Long id) {
+        return this.ankenRepository.findById(id);
     }
 }

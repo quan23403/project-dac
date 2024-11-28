@@ -1,7 +1,11 @@
 package com.example.ProjectDAC.util;
 
 import com.example.ProjectDAC.domain.User;
+import com.example.ProjectDAC.domain.dto.ResUserDTO;
+import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -15,11 +19,14 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class JwtUtils {
     private UserService userService;
     private JwtDecoder jwtDecoder;
+
 
     @Value("${jwt.signerKey}")
     private String SIGNER_KEY;
@@ -28,7 +35,8 @@ public class JwtUtils {
         this.jwtDecoder = jwtDecoder;
     }
 
-    public String generateToken(User user) {
+    public String generateToken(User user) throws JsonProcessingException, IdInvalidException {
+
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .issuer("hmquan")
@@ -36,8 +44,7 @@ public class JwtUtils {
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
-//                .claim("scope", buildScope(user))
-                .claim("user", this.userService.convertUserToResLoginDTO(user))
+                .claim("user", this.userService.convertUserToResUserDTO(user))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -63,8 +70,11 @@ public class JwtUtils {
         return jwtDecoder.decode(token); // Giải mã token
     }
 
-    public String getUsernameFromToken(String token) {
+    public List<Long> getAnkenListFromToken(String token) throws IdInvalidException {
+        token = token.substring(7);
         Jwt jwt = decodeToken(token);
-        return jwt.getClaimAsString("user"); // Trích xuất thông tin, ví dụ là username
+        Map<String, Object> userMap = jwt.getClaim("user"); //
+
+        return (List<Long>) userMap.get("ankenListId");
     }
 }
