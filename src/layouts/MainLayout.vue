@@ -19,6 +19,7 @@ const drawer = ref(null);
 
 const navigationItems = [
   { title: "Category", icon: "mdi-view-dashboard", to: "/" },
+  { title: "Anken List", icon: "mdi-chart-bar", to: "/anken-list" },
   { title: "Account-Category", icon: "mdi-account-group", to: "/acc-cate" },
   {
     title: "Campaign-Category",
@@ -26,7 +27,6 @@ const navigationItems = [
     to: "/cam-cate",
   },
   { title: "Import/Export File", icon: "mdi-cart", to: "/import-export-file" },
-  { title: "Reports", icon: "mdi-chart-bar", to: "/reports" },
   { title: "Settings", icon: "mdi-cog", to: "/settings" },
 ];
 

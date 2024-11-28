@@ -1,32 +1,42 @@
 <template>
-  <v-container>
-    <!-- Tab Navigation -->
-    <v-tabs v-model="activeTab" vertical>
-      <v-tab v-for="(tab, index) in tabs" :key="index">{{ tab.name }}</v-tab>
-    </v-tabs>
+  <v-card>
+    <v-card-title>Preview Import Data</v-card-title>
+    <v-card-text>
+      <!-- Tab Navigation -->
+      <v-tabs v-model="activeTab" vertical>
+        <v-tab v-for="(tab, index) in tabs" :key="index">{{ tab.name }}</v-tab>
+      </v-tabs>
 
-    <!-- Tab Content -->
-    <v-tabs-items v-model="activeTab">
-      <v-tab-item v-for="(table, index) in tabs" :key="index">
-        <!-- Hiển thị dữ liệu bảng dưới dạng bảng Vuetify sử dụng v-data-table -->
-        <v-data-table
-          v-if="activeTab === index"
-          :headers="table.headers"
-          :items="table.data"
-          item-key="id"
-          :loading="table.loading"
-          :items-per-page="10"
-          :search="table.searchQuery"
-        >
-        </v-data-table>
-      </v-tab-item>
-    </v-tabs-items>
-  </v-container>
+      <!-- Tab Content -->
+      <v-tabs-items v-model="activeTab">
+        <v-tab-item v-for="(table, index) in tabs" :key="index">
+          <!-- Hiển thị dữ liệu bảng dưới dạng bảng Vuetify sử dụng v-data-table -->
+          <v-data-table
+            v-if="activeTab === index"
+            :headers="table.headers"
+            :items="table.data"
+            item-key="id"
+            :loading="table.loading"
+            :items-per-page="10"
+            :search="table.searchQuery"
+          >
+          </v-data-table>
+        </v-tab-item>
+      </v-tabs-items>
+    </v-card-text>
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <v-btn color="primary" @click="confirmFileExcelFunction"
+        >Confirm Import</v-btn
+      >
+      <v-btn @click="$emit('cancel-import')">Cancel</v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script setup>
 import { ref, onMounted, defineProps } from "vue";
-import axios from "axios";
+import { previewFileExcel, confirmFileExcel } from "@/api/api";
 const props = defineProps(["file"]);
 const activeTab = ref();
 const categoryData = ref();
@@ -91,10 +101,7 @@ const fetchTableData = async () => {
   const formData = new FormData();
   formData.append("file", props.file);
   try {
-    const response = await axios.post(
-      "http://localhost:8080/excel/preview/category",
-      formData
-    );
+    const response = await previewFileExcel(formData);
     categoryData.value = response.data[0].data.map((category) => {
       // Chuyển mảng ngày tháng thành đối tượng Date
       if (Array.isArray(category.endDate)) {
@@ -130,6 +137,23 @@ const formatDate = (date) => {
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
   return `${year}-${month}-${day}`;
+};
+
+const confirmFileExcelFunction = async () => {
+  const formData = new FormData();
+  formData.append("file", props.file);
+  try {
+    const response = await confirmFileExcel(formData);
+    // Kiểm tra phản hồi thành công
+    if (response.status === 200) {
+      alert("File đã được tải lên thành công!");
+    } else {
+      alert("Có lỗi xảy ra khi tải file lên!");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Có lỗi khi tải file lên!");
+  }
 };
 
 onMounted(() => {

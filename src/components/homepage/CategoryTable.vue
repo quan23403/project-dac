@@ -50,12 +50,11 @@
                 ></v-text-field>
 
                 <!-- Trường Type Category -->
-                <v-select
+                <v-text-field
                   v-model="editedItem.typeCategory"
-                  :items="typeCategoryOptions"
-                  label="Type"
-                  required
-                ></v-select>
+                  label="Type of Category"
+                  readonly
+                ></v-text-field>
 
                 <!-- Trường Budget -->
                 <v-text-field

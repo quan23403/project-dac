@@ -37,3 +37,11 @@ export const deleteCategoryBinding = async (formData) => {
 export const previewFileExcel = async (formData) => {
   return await axios.post("/excel/preview", formData);
 };
+
+export const confirmFileExcel = async (formData) => {
+  return await axios.post("/excel/read-excel", formData);
+};
+
+export const exportFileExcel = async () => {
+  return await axios.get("/excel/export", { responseType: "blob" });
+};

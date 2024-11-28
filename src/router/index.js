@@ -55,6 +55,14 @@ const routes = [
       layout: MainLayout,
     },
   },
+  {
+    path: "/anken-list",
+    name: "AnkenList",
+    component: () => import("../components/anken-page/AnkenList.vue"),
+    meta: {
+      layout: MainLayout,
+    },
+  },
 ];
 
 const router = createRouter({
