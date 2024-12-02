@@ -14,6 +14,7 @@ import com.example.ProjectDAC.util.constant.EKpiType;
 import com.example.ProjectDAC.util.constant.ESheetTemplateExcel;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
 import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
@@ -43,7 +44,7 @@ public class ExcelService {
         this.ankenService = ankenService;
     }
 
-    public void readExcelSheet(MultipartFile file) {
+    public void readExcelSheet(MultipartFile file, List<Long> ids) throws IdInvalidException {
         try (XSSFWorkbook workbook = new XSSFWorkbook(file.getInputStream())) {
             // Lấy sheet đầu tiên
 //            Sheet sheet = workbook.getSheetAt(ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber());
@@ -123,13 +124,14 @@ public class ExcelService {
                 }
                 actionWithCategory(listActionWithCategory, sheetNumber);
                 if(sheetNumber == ESheetTemplateExcel.CATEGORY_ACCOUNT.getSheetNumber()) {
-                    actionWithAccountCategory(sheet, columnMap2);
+                    actionWithAccountCategory(sheet, columnMap2, ids);
                 } else if (sheetNumber == ESheetTemplateExcel.CATEGORY_CAMPAIGN.getSheetNumber()) {
-                    actionWithCampaignCategory(sheet, columnMap2);
+                    actionWithCampaignCategory(sheet, columnMap2, ids);
                 }
             }
-        } catch (IOException | IdInvalidException e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            // Ném lại với thông báo lỗi riêng biệt cho IOException
+            throw new RuntimeException("An I/O error occurred: " + e.getMessage(), e);
         }
     }
 
@@ -179,7 +181,7 @@ public class ExcelService {
         }
     }
 
-    public void actionWithCampaignCategory(Sheet sheet, Map<String, Integer> columnMap2) throws IdInvalidException {
+    public void actionWithCampaignCategory(Sheet sheet, Map<String, Integer> columnMap2, List<Long> ids) throws IdInvalidException {
         List<Map<String, Object>> listActions = new ArrayList<>();
         for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
@@ -227,21 +229,16 @@ public class ExcelService {
                     request.setCategoryId((((Double) categoryIdObj).longValue()));
                     request.setEntityId((((Double) campaignIdObj).longValue()));
                     request.setEntityType(ETypeCategory.CAMPAIGN);
-                    if (!this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), ETypeCategory.CAMPAIGN)) {
-                        this.categoryBindingService.create(request);
-                        System.out.print("Create Campaign-Category Success");
-                    } else {
-                        this.categoryBindingService.update(request);
-                        System.out.print("Update Campaign-Category Success");
-                    }
+                    this.categoryBindingService.create(request, ids);
+                    System.out.print("Update Campaign-Category Success");
                 } else if (Objects.equals(action.get("Action").toString(), "Delete")) {
-                    this.categoryBindingService.deleteCategoryBinding((((Double) action.get("Campaign Id")).longValue()), ETypeCategory.CAMPAIGN);
+                    this.categoryBindingService.deleteCategoryBinding((((Double) action.get("Campaign Id")).longValue()), ETypeCategory.CAMPAIGN, ids);
                     System.out.print("Delete Campaign-Category Success");
                 }
             }
         }
     }
-    public void actionWithAccountCategory(Sheet sheet, Map<String, Integer> columnMap2) throws IdInvalidException {
+    public void actionWithAccountCategory(Sheet sheet, Map<String, Integer> columnMap2, List<Long> ids) throws IdInvalidException {
         System.out.println("--------------Action List------------");
         List<Map<String, Object>> listActions = new ArrayList<>();
         for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
@@ -290,25 +287,19 @@ public class ExcelService {
                 request.setCategoryId((((Double) categoryIdObj).longValue()));
                 request.setEntityId((((Double) accountIdObj).longValue()));
                 request.setEntityType(ETypeCategory.ACCOUNT);
-                if(!this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), ETypeCategory.ACCOUNT)) {
-                    this.categoryBindingService.create(request);
-                    System.out.print("Create Account-Category Success");
-                }
-                else {
-                    this.categoryBindingService.update(request);
-                    System.out.print("Update Account-Category Success");
-                }
+                this.categoryBindingService.create(request, ids);
+                System.out.print("Create Account-Category Success");
             }
             else if(Objects.equals(action.get("Action").toString(), "Delete")) {
-                this.categoryBindingService.deleteCategoryBinding((((Double) action.get("Account Id")).longValue()), ETypeCategory.ACCOUNT);
+                this.categoryBindingService.deleteCategoryBinding((((Double) action.get("Account Id")).longValue()), ETypeCategory.ACCOUNT, ids);
                 System.out.print("Delete Account-Category Success");
             }
         }
     }
 
-    public List<ResCategoryInExcel> getCategory(ETypeCategory typeCategory) {
+    public List<ResCategoryInExcel> getCategory(ETypeCategory typeCategory,List<Long> ids) throws IdInvalidException {
         List<ResCategoryInExcel> result = new ArrayList<>();
-        List<Anken> ankenList = this.ankenService.getAll();
+        List<Anken> ankenList = this.ankenService.getByUser(ids);
         for(Anken anken : ankenList) {
             for(Category category : anken.getCategoryList()) {
                 if(category.getTypeCategory() == typeCategory) {
@@ -323,28 +314,26 @@ public class ExcelService {
         return result;
     }
 
-
-
-    public void exportData(HttpServletResponse response) {
+    public void exportData(HttpServletResponse response, List<Long> ids) {
         try(XSSFWorkbook workbook = new XSSFWorkbook()) {
             Sheet ankenList = workbook.createSheet("Anken List");
             Sheet accountCategory = workbook.createSheet("Category_Account");
             Sheet campaignCategory = workbook.createSheet("Category_Campaign");
-            int ankenListSize = writeSheetAnkenList(ankenList);
-            writeSheetAccountCategory(workbook, accountCategory, ankenListSize);
-            writeSheetCampaignCategory(workbook, campaignCategory, ankenListSize);
+            int ankenListSize = writeSheetAnkenList(ankenList, ids);
+            writeSheetAccountCategory(workbook, accountCategory, ankenListSize, ids);
+            writeSheetCampaignCategory(workbook, campaignCategory, ankenListSize, ids);
             ServletOutputStream outputStream = response.getOutputStream();
             workbook.write(outputStream);
             workbook.close();
             outputStream.close();
             System.out.println("Excel file with multiple tables created successfully!");
-        } catch (IOException e) {
+        } catch (IOException | IdInvalidException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public int writeSheetAnkenList(Sheet sheet) {
-        List<Anken> ankenList = this.ankenService.getAll();
+    public int writeSheetAnkenList(Sheet sheet, List<Long> ids) throws IdInvalidException {
+        List<Anken> ankenList = this.ankenService.getByUser(ids);
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Anken Id");
         headerRow.createCell(1).setCellValue("Anken Name");
@@ -356,7 +345,7 @@ public class ExcelService {
         }
         return ankenList.size();
     }
-    public void writeSheetAccountCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize) {
+    public void writeSheetAccountCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize, List<Long> ids) throws IdInvalidException {
         int index = 0;
         Map<String, Integer> table1 = new HashMap<>();
         Map<String, Integer> table2 = new HashMap<>();
@@ -388,8 +377,8 @@ public class ExcelService {
         dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("yyyy/MM/dd"));
 
         int rowCount = 1;
-        List<ResCategoryInExcel> listCategory = this.getCategory(ETypeCategory.ACCOUNT);
-        List<AccountCategoryDTO> listAccountCategory = this.categoryBindingService.getAccountCategoryDetails();
+        List<ResCategoryInExcel> listCategory = this.getCategory(ETypeCategory.ACCOUNT, ids);
+        List<AccountCategoryDTO> listAccountCategory = this.categoryBindingService.getAccountCategoryDetails(ids);
         int rowMax = Math.max(listCategory.size(), listAccountCategory.size());
         for(int i = 1; i <= rowMax; i++) {
             Row row = sheet.createRow(rowCount);
@@ -465,7 +454,7 @@ public class ExcelService {
         sheet.addValidationData(validation);
     }
 
-    public void writeSheetCampaignCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize) {
+    public void writeSheetCampaignCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize, List<Long> ids) throws IdInvalidException {
         int index = 0;
         Map<String, Integer> table1 = new HashMap<>();
         Map<String, Integer> table2 = new HashMap<>();
@@ -497,8 +486,8 @@ public class ExcelService {
         dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("yyyy/MM/dd"));
 
         int rowCount = 1;
-        List<ResCategoryInExcel> listCategory = this.getCategory(ETypeCategory.CAMPAIGN);
-        List<CampaignCategoryDTO> listCampaignCategory = this.categoryBindingService.getCampaignCategoryDetails();
+        List<ResCategoryInExcel> listCategory = this.getCategory(ETypeCategory.CAMPAIGN, ids);
+        List<CampaignCategoryDTO> listCampaignCategory = this.categoryBindingService.getCampaignCategoryDetails(ids);
         int rowMax = Math.max(listCategory.size(), listCampaignCategory.size());
         for(int i = 1; i <= rowMax; i++) {
             Row row = sheet.createRow(rowCount);

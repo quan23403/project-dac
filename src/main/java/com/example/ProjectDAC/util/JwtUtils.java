@@ -36,7 +36,6 @@ public class JwtUtils {
     }
 
     public String generateToken(User user) throws JsonProcessingException, IdInvalidException {
-
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .issuer("hmquan")
@@ -71,10 +70,39 @@ public class JwtUtils {
     }
 
     public List<Long> getAnkenListFromToken(String token) throws IdInvalidException {
-        token = token.substring(7);
-        Jwt jwt = decodeToken(token);
-        Map<String, Object> userMap = jwt.getClaim("user"); //
+        try {
+            // Remove the "Bearer " prefix from the token, if present
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            } else {
+                throw new IdInvalidException("Invalid token format.");
+            }
+            Jwt jwt = decodeToken(token);
 
-        return (List<Long>) userMap.get("ankenListId");
+            Map<String, Object> userMap = jwt.getClaim("user");
+
+            // Check if the 'user' claim is present and has the expected 'ankenListId' field
+            if (userMap != null && userMap.containsKey("ankenListId")) {
+                Object ankenListIdObject = userMap.get("ankenListId");
+
+                // Ensure the object is of type List<Long>
+                if (ankenListIdObject instanceof List<?> ankenList) {
+                    // Optionally, check if the list only contains Longs (this assumes the list contains the correct type)
+                    for (Object item : ankenList) {
+                        if (!(item instanceof Long)) {
+                            throw new IdInvalidException("Invalid list item type in 'ankenListId'. Expected Long.");
+                        }
+                    }
+                    // Safe casting to List<Long> after validation
+                    return (List<Long>) ankenListIdObject;
+                } else {
+                    throw new IdInvalidException("'ankenListId' is not of type List<Long>.");
+                }
+            } else {
+                throw new IdInvalidException("'user' claim or 'ankenListId' not found in the token.");
+            }
+        } catch (Exception e) {
+            throw new IdInvalidException("Failed to process the token: " + e.getMessage());
+        }
     }
 }

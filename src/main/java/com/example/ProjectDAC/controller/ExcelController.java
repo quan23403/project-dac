@@ -1,8 +1,11 @@
 package com.example.ProjectDAC.controller;
 
+import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.response.ResCategoryInExcel;
 import com.example.ProjectDAC.service.ExcelService;
+import com.example.ProjectDAC.service.UserService;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +21,16 @@ import java.util.*;
 @RequestMapping("/excel")
 public class ExcelController {
     private final ExcelService excelService;
-    public ExcelController(ExcelService excelService) {
+    private final UserService userService;
+    public ExcelController(ExcelService excelService, UserService userService) {
         this.excelService = excelService;
+        this.userService = userService;
     }
     @PostMapping("/read-excel")
     public String readExcel(@RequestParam("file") MultipartFile file) {
         try {
-            excelService.readExcelSheet(file);
+            List<Long> ids = this.userService.getAnkenListFromSecurityContext();
+            excelService.readExcelSheet(file, ids);
             return "Success";
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -32,19 +38,21 @@ public class ExcelController {
     }
 
     @GetMapping("/write-excel-category")
-    public List<ResCategoryInExcel> writeCategoryExcel() {
-        return excelService.getCategory(ETypeCategory.CAMPAIGN);
+    public List<ResCategoryInExcel> writeCategoryExcel() throws IdInvalidException {
+        List<Long> ids = this.userService.getAnkenListFromSecurityContext();
+        return excelService.getCategory(ETypeCategory.CAMPAIGN, ids);
     }
 
     @GetMapping("/export")
     public void exportExcel(HttpServletResponse response) {
+        List<Long> ids = this.userService.getAnkenListFromSecurityContext();
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
 
         String headerValue = "attachment; filename=users_" + currentDateTime + ".xlsx";
         response.setHeader("Content-Disposition", headerValue);
-        this.excelService.exportData(response);
+        this.excelService.exportData(response, ids);
     }
 
     @PostMapping("/preview")

@@ -8,8 +8,10 @@ import com.example.ProjectDAC.repository.AnkenRepository;
 import com.example.ProjectDAC.repository.CategoryRepository;
 import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
+import com.example.ProjectDAC.util.JwtUtils;
 import com.example.ProjectDAC.util.constant.EStatus;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +24,12 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final AnkenRepository ankenRepository;
     private final AnkenService ankenService;
-    public CategoryService(CategoryRepository categoryRepository, AnkenRepository ankenRepository, AnkenService ankenService) {
+    private final JwtUtils jwtUtils;
+    public CategoryService(CategoryRepository categoryRepository, AnkenRepository ankenRepository, AnkenService ankenService, JwtUtils jwtUtils) {
         this.categoryRepository = categoryRepository;
         this.ankenRepository = ankenRepository;
         this.ankenService = ankenService;
+        this.jwtUtils = jwtUtils;
     }
     public Category create(CreateCategoryRequest request) throws IdInvalidException {
         Category category = new Category();
@@ -68,6 +72,7 @@ public class CategoryService {
         res.setKpiGoal(category.getKpiGoal());
         res.setKpiType(category.getKpiType());
         if(category.getAnken() != null) {
+            res.setAnkenId(category.getAnken().getId());
             res.setAnkenName(category.getAnken().getName());
         }
         return res;
@@ -145,4 +150,15 @@ public class CategoryService {
         this.categoryRepository.save(categoryInDB);
     }
 
+    public boolean checkIdIn(long ankenId, List<Long> ids) {
+        return ids != null && ids.contains(ankenId);
+    }
+
+    public void checkPermission(HttpServletRequest request, Category category) throws IdInvalidException {
+        String token = request.getHeader("Authorization");
+        List<Long> ids = this.jwtUtils.getAnkenListFromToken(token);
+        if(!this.checkIdIn(category.getAnken().getId(), ids)) {
+            throw new IdInvalidException("You do not have permission to get this Category");
+        }
+    }
 }

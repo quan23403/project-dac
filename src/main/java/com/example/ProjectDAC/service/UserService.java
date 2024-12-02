@@ -6,11 +6,12 @@ import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.repository.UserRepository;
 import com.example.ProjectDAC.domain.dto.ResUserDTO;
 import com.example.ProjectDAC.request.UpdateUserRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,5 +76,18 @@ public class UserService {
         List<Long> ids = userOptional.get().getAnkenList().stream()
                 .map(Anken::getId).toList();
         return ids;
+    }
+    public List<Long> getAnkenListFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof Jwt) {
+                Jwt jwt = (Jwt) principal;
+                Map<String, Object> userMap = jwt.getClaim("user");
+                // Truy xuất claim roles
+                return (List<Long>) userMap.get("ankenListId");
+            }
+        }
+        return Collections.emptyList();  // Hoặc xử lý trường hợp không có roles
     }
 }
