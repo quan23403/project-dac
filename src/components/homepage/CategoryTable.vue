@@ -158,9 +158,13 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
-import axios from "axios";
 import NewCategoryDialog from "./dialog/NewCategoryDialog.vue";
-import { updateCategory, deleteCategory, getAllAnken } from "@/api/api";
+import {
+  updateCategory,
+  deleteCategory,
+  getAllAnken,
+  getCategory,
+} from "@/api/api";
 
 const search = ref();
 const dialogDelete = ref(false);
@@ -186,7 +190,7 @@ const kpiTypeOptions = ["IMP", "CPC", "CPV"];
 
 const fetchCategories = async () => {
   try {
-    const response = await axios.get("http://localhost:8080/category");
+    const response = await getCategory();
     // Xử lý dữ liệu ngày tháng khi nhận từ API
     categories.value = response.data.map((category) => {
       // Chuyển mảng ngày tháng thành đối tượng Date

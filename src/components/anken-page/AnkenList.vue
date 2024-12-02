@@ -1,16 +1,5 @@
 <template>
   <v-container fluid>
-    <!-- Controls -->
-    <v-row class="mb-4">
-      <v-col cols="12" md="6">
-        <v-switch
-          v-model="splitTable"
-          label="Split Table"
-          hint="Toggle between single and split table view"
-        ></v-switch>
-      </v-col>
-    </v-row>
-
     <!-- Tables Container -->
     <v-row>
       <!-- First Table -->
@@ -30,7 +19,7 @@
           </v-card-title>
           <v-data-table
             :headers="headers"
-            :items="firstTableItems"
+            :items="items"
             :search="search"
             class="elevation-1"
           >
@@ -68,13 +57,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-
+import { onMounted, ref } from "vue";
+import { getAnkenByUser } from "@/api/api";
 // Table controls
-const splitTable = ref(false);
 const search = ref("");
-const search2 = ref("");
-
+const errorMsg = ref();
 // Table headers
 const headers = [
   {
@@ -91,64 +78,28 @@ const headers = [
     key: "name",
     icon: "mdi-account",
   },
-  {
-    title: "Status",
-    align: "start",
-    sortable: true,
-    key: "status",
-    icon: "mdi-alert-circle",
-  },
-  {
-    title: "Actions",
-    key: "actions",
-    sortable: false,
-    align: "end",
-  },
 ];
 
 // Sample data
-const items = [
-  { id: 1, name: "Project Alpha", status: "active" },
-  { id: 2, name: "Project Beta", status: "pending" },
-  { id: 3, name: "Project Gamma", status: "completed" },
-  { id: 4, name: "Project Delta", status: "active" },
-  { id: 5, name: "Project Epsilon", status: "pending" },
-  { id: 6, name: "Project Zeta", status: "completed" },
-  { id: 7, name: "Project Eta", status: "active" },
-  { id: 8, name: "Project Theta", status: "pending" },
-  { id: 5, name: "Project Epsilon", status: "pending" },
-  { id: 6, name: "Project Zeta", status: "completed" },
-  { id: 7, name: "Project Eta", status: "active" },
-  { id: 8, name: "Project Theta", status: "pending" },
-];
+const items = ref();
 
-// Split items between tables when in split mode
-const firstTableItems = computed(() => {
-  return splitTable.value ? items.slice(0, Math.ceil(items.length / 2)) : items;
+const getAnkenByUserFunction = async () => {
+  try {
+    const response = await getAnkenByUser();
+    items.value = response.data;
+  } catch (error) {
+    // Xử lý lỗi
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Lấy Anken Name thất bại:
+          ${error.response.data.message || error.message}`;
+    }
+  }
+};
+
+onMounted(() => {
+  getAnkenByUserFunction();
 });
-
-const secondTableItems = computed(() => {
-  return items.slice(Math.ceil(items.length / 2));
-});
-
-// Status color mapping
-const getStatusColor = (status) => {
-  const colors = {
-    active: "success",
-    pending: "warning",
-    completed: "info",
-  };
-  return colors[status] || "grey";
-};
-
-// Action methods
-const editItem = (item) => {
-  console.log("Edit item:", item);
-};
-
-const deleteItem = (item) => {
-  console.log("Delete item:", item);
-};
 </script>
 
 <style scoped>

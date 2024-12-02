@@ -107,7 +107,12 @@ const fetchTableData = async () => {
   for (let table of tables.value) {
     table.loading = true; // Đánh dấu là đang tải dữ liệu
     try {
-      const response = await axios.get(table.apiUrl);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(table.apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       // Lưu trữ dữ liệu và cột vào mỗi bảng
       table.data = response.data;
     } catch (error) {

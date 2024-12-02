@@ -1,47 +1,53 @@
+import axiosInstance from "./axios";
 import axios from "axios";
-
-axios.defaults.baseURL = "http://localhost:8080";
-
 export const createCategory = async (formData) => {
-  return await axios.post("/category", formData);
+  return await axiosInstance.post("/category", formData);
 };
 
 export const updateCategory = async (formData) => {
-  return await axios.put("/category", formData);
+  return await axiosInstance.put("/category", formData);
+};
+
+export const getCategory = async () => {
+  return await axiosInstance.get("/category");
 };
 
 export const deleteCategory = async (id) => {
-  return await axios.delete(`/category/${id}`);
+  return await axiosInstance.delete(`/category/${id}`);
 };
 
 export const getAllAnken = async () => {
-  return await axios.get("/anken");
+  return await axiosInstance.get("/anken");
 };
 
 export const getAllCategoryAccount = async () => {
-  return await axios.get("/category/account-category");
+  return await axiosInstance.get("/category/account-category");
 };
 
 export const getAllCategoryCampaign = async () => {
-  return await axios.get("/category/campaign-category");
+  return await axiosInstance.get("/category/campaign-category");
 };
 
 export const updateAccountCategoryDetails = async (formData) => {
-  return await axios.post("/category-binding", formData);
+  return await axiosInstance.post("/category-binding", formData);
 };
 
 export const deleteCategoryBinding = async (formData) => {
-  return await axios.post("/category-binding/delete", formData);
+  return await axiosInstance.post("/category-binding/delete", formData);
 };
 
 export const previewFileExcel = async (formData) => {
-  return await axios.post("/excel/preview", formData);
+  return await axiosInstance.post("/excel/preview", formData);
 };
 
 export const confirmFileExcel = async (formData) => {
-  return await axios.post("/excel/read-excel", formData);
+  return await axiosInstance.post("/excel/read-excel", formData);
 };
 
 export const exportFileExcel = async () => {
-  return await axios.get("/excel/export", { responseType: "blob" });
+  return await axiosInstance.get("/excel/export", { responseType: "blob" });
+};
+
+export const getAnkenByUser = async () => {
+  return await axiosInstance.get("/anken");
 };

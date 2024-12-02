@@ -107,8 +107,12 @@ const fetchTableData = async () => {
     // console.log(table);
     table.loading = true; // Đánh dấu là đang tải dữ liệu
     try {
-      const response = await axios.get(table.apiUrl);
-      // Lưu trữ dữ liệu và cột vào mỗi bảng
+      const token = localStorage.getItem("token");
+      const response = await axios.get(table.apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       table.data = response.data;
     } catch (error) {
       console.error(`Error fetching data for ${table.name}:`, error);
