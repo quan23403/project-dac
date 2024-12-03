@@ -92,7 +92,7 @@ public class ExcelService {
 
                     Cell budget = row.getCell(columnMap.get("Budget"));
                     if(budget == null) {
-                        actionWithCategory.put("Budget", 0);
+                        actionWithCategory.put("Budget", 0.0);
                     }
                     else{
                         actionWithCategory.put("Budget", budget.getNumericCellValue());
@@ -105,7 +105,7 @@ public class ExcelService {
 
                     Cell KpiGoal = row.getCell(columnMap.get("KPI Goal"));
                     if(KpiGoal == null) {
-                        actionWithCategory.put("KPI Goal", (long) 0);
+                        actionWithCategory.put("KPI Goal", 0.0);
                     }
                     else {
                         actionWithCategory.put("KPI Goal", KpiGoal.getNumericCellValue());
@@ -434,24 +434,27 @@ public class ExcelService {
         // Thêm dữ liệu Validation vào các ô muốn tạo dropdown (ví dụ: B1 tới B10)
         DataValidationHelper validationHelper = sheet.getDataValidationHelper();
         DataValidationConstraint constraintAnkenName = validationHelper.createFormulaListConstraint("AnkenList");
-
-        CellRangeAddressList addressList = new CellRangeAddressList(1, listCategory.size(),0 , 0); // B1 to B10
-        DataValidation validation = validationHelper.createValidation(constraintAnkenName, addressList);
-        sheet.addValidationData(validation);
-
         DataValidationConstraint constraintActionValues = validationHelper.createExplicitListConstraint(actionsValues);
-        addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Action") , table1.get("Action")); // B1 to B10
-        validation = validationHelper.createValidation(constraintActionValues, addressList);
-        sheet.addValidationData(validation);
-
-        addressList = new CellRangeAddressList(1, listAccountCategory.size(), table2.get("Action") , table2.get("Action")); // B1 to B10
-        validation = validationHelper.createValidation(constraintActionValues, addressList);
-        sheet.addValidationData(validation);
-
         DataValidationConstraint constraintTypeofKPIValues = validationHelper.createExplicitListConstraint(typeOfKPI);
-        addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Type of KPI"), table1.get("Type of KPI"));
-        validation = validationHelper.createValidation(constraintTypeofKPIValues, addressList);
-        sheet.addValidationData(validation);
+        if(!listCategory.isEmpty()) {
+            CellRangeAddressList addressList = new CellRangeAddressList(1, listCategory.size(),0 , 0); // B1 to B10
+            DataValidation validation = validationHelper.createValidation(constraintAnkenName, addressList);
+            sheet.addValidationData(validation);
+
+            addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Action") , table1.get("Action")); // B1 to B10
+            validation = validationHelper.createValidation(constraintActionValues, addressList);
+            sheet.addValidationData(validation);
+
+            addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Type of KPI"), table1.get("Type of KPI"));
+            validation = validationHelper.createValidation(constraintTypeofKPIValues, addressList);
+            sheet.addValidationData(validation);
+        }
+
+        if(!listAccountCategory.isEmpty()) {
+            CellRangeAddressList addressList = new CellRangeAddressList(1, listAccountCategory.size(), table2.get("Action") , table2.get("Action")); // B1 to B10
+            DataValidation validation = validationHelper.createValidation(constraintActionValues, addressList);
+            sheet.addValidationData(validation);
+        }
     }
 
     public void writeSheetCampaignCategory(XSSFWorkbook workbook, Sheet sheet, int ankenListSize, List<Long> ids) throws IdInvalidException {
@@ -544,24 +547,28 @@ public class ExcelService {
         // Thêm dữ liệu Validation vào các ô muốn tạo dropdown (ví dụ: B1 tới B10)
         DataValidationHelper validationHelper = sheet.getDataValidationHelper();
         DataValidationConstraint constraintAnkenName = validationHelper.createFormulaListConstraint("AnkenList");
-
-        CellRangeAddressList addressList = new CellRangeAddressList(1, listCategory.size(),0 , 0); // B1 to B10
-        DataValidation validation = validationHelper.createValidation(constraintAnkenName, addressList);
-        sheet.addValidationData(validation);
-
         DataValidationConstraint constraintActionValues = validationHelper.createExplicitListConstraint(actionsValues);
-        addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Action") , table1.get("Action")); // B1 to B10
-        validation = validationHelper.createValidation(constraintActionValues, addressList);
-        sheet.addValidationData(validation);
-
-        addressList = new CellRangeAddressList(1, listCampaignCategory.size(), table2.get("Action") , table2.get("Action")); // B1 to B10
-        validation = validationHelper.createValidation(constraintActionValues, addressList);
-        sheet.addValidationData(validation);
-
         DataValidationConstraint constraintTypeofKPIValues = validationHelper.createExplicitListConstraint(typeOfKPI);
-        addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Type of KPI"), table1.get("Type of KPI"));
-        validation = validationHelper.createValidation(constraintTypeofKPIValues, addressList);
-        sheet.addValidationData(validation);
+
+        if(!listCategory.isEmpty()){
+            CellRangeAddressList addressList = new CellRangeAddressList(1, listCategory.size(),0 , 0);
+            DataValidation validation = validationHelper.createValidation(constraintAnkenName, addressList);
+            sheet.addValidationData(validation);
+
+            addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Action") , table1.get("Action")); // B1 to B10
+            validation = validationHelper.createValidation(constraintActionValues, addressList);
+            sheet.addValidationData(validation);
+
+            addressList = new CellRangeAddressList(1, listCategory.size(), table1.get("Type of KPI"), table1.get("Type of KPI"));
+            validation = validationHelper.createValidation(constraintTypeofKPIValues, addressList);
+            sheet.addValidationData(validation);
+        }
+
+        if(!listCampaignCategory.isEmpty()) {
+            CellRangeAddressList addressList = new CellRangeAddressList(1, listCampaignCategory.size(), table2.get("Action") , table2.get("Action")); // B1 to B10
+            DataValidation validation = validationHelper.createValidation(constraintActionValues, addressList);
+            sheet.addValidationData(validation);
+        }
     }
 
     public List<Map<String, Object>> getCategoryActionPreview(MultipartFile file) throws IOException {

@@ -1,6 +1,7 @@
 package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.error.IdInvalidException;
+import com.example.ProjectDAC.request.RequestBodyExport;
 import com.example.ProjectDAC.response.ResCategoryInExcel;
 import com.example.ProjectDAC.service.ExcelService;
 import com.example.ProjectDAC.service.UserService;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,6 +50,22 @@ public class ExcelController {
     @GetMapping("/export")
     public void exportExcel(HttpServletResponse response) {
         List<Long> ids = this.userService.getAnkenListFromSecurityContext();
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerValue = "attachment; filename=users_" + currentDateTime + ".xlsx";
+        response.setHeader("Content-Disposition", headerValue);
+        this.excelService.exportData(response, ids);
+    }
+
+    @PostMapping("/export")
+    public void exportExcelTest(HttpServletResponse response, @RequestBody RequestBodyExport requestBodyExport) {
+        List<Long> ids = requestBodyExport.getIds();
+        List<Long> ankenIdList = this.userService.getAnkenListFromSecurityContext();
+
+        ids.removeIf(id -> !ankenIdList.contains(id));
+
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());

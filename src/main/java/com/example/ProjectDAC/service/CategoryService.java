@@ -120,13 +120,15 @@ public class CategoryService {
     }
 
     public void delete(Category category) {
-        category.setStatus(EStatus.DELETED);
+        category.setAnken(null);
         this.categoryRepository.save(category);
     }
 
     @Transactional
     public void deleteCategoryByName(String name) {
-        this.categoryRepository.deleteByName(name);
+        Category category = this.categoryRepository.findByName(name);
+        category.setAnken(null);
+        this.categoryRepository.save(category);
     }
 
     public void updateCategoryByName(UpdateCategoryRequest updateCategory) {
