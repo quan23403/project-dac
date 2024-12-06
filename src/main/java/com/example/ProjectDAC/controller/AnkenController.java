@@ -4,10 +4,7 @@ import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.error.IdInvalidException;
 import com.example.ProjectDAC.service.AnkenService;
 import com.example.ProjectDAC.service.UserService;
-import com.example.ProjectDAC.util.JwtUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,9 +29,15 @@ public class AnkenController {
     }
 
     @GetMapping("/anken")
-    public ResponseEntity<List<Anken>> getAllAnken() throws IdInvalidException {
+    public ResponseEntity<List<Anken>> getAllAnkenByUser() throws IdInvalidException {
         List<Long> ids = this.userService.getAnkenListFromSecurityContext();
         List<Anken> ankens = this.ankenService.getByUser(ids);
+        return ResponseEntity.status(HttpStatus.OK).body(ankens);
+    }
+
+    @GetMapping("/all-anken")
+    public ResponseEntity<List<Anken>> getAllAnkens() {
+        List<Anken> ankens = this.ankenService.getAllAnken();
         return ResponseEntity.status(HttpStatus.OK).body(ankens);
     }
 }

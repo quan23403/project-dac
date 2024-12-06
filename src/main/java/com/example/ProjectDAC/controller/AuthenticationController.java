@@ -59,7 +59,7 @@ public class AuthenticationController {
             result.setFirstName(user.getFirstName());
             result.setLastName(user.getLastName());
             result.setToken(token);
-
+            result.setAnkenList(user.getAnkenList());
             // Log success information
             System.out.println("Log in success");
 //            System.out.println(jwtUtils.getUsernameFromToken(token));
