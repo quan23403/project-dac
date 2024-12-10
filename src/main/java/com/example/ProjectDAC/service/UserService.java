@@ -103,4 +103,8 @@ public class UserService {
         }
         return null;
     }
+
+    public void resetPassword(User user) {
+        userRepository.save(user);
+    }
 }
