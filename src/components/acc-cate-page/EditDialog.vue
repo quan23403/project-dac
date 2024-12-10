@@ -2,7 +2,7 @@
   <v-dialog v-model="dialog" max-width="900px">
     <v-card>
       <v-card-title>
-        <span class="text-h5">Edit Campaign-Category</span>
+        <span class="text-h5">Edit Account-Category</span>
       </v-card-title>
       <v-card-text>
         <v-container>

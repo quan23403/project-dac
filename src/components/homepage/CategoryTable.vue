@@ -164,6 +164,7 @@ import {
   deleteCategory,
   getAllAnken,
   getCategory,
+  getAnkenByUser,
 } from "@/api/api";
 
 const search = ref();
@@ -222,7 +223,7 @@ const fetchCategories = async () => {
 
 const getAllAnkenFunction = async () => {
   try {
-    const response = await getAllAnken();
+    const response = await getAnkenByUser();
     ankenOptions.value = response.data;
   } catch (error) {
     // Xử lý lỗi

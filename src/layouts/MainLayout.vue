@@ -19,15 +19,25 @@ const drawer = ref(null);
 
 const navigationItems = [
   { title: "Category", icon: "mdi-view-dashboard", to: "/" },
-  { title: "Anken List", icon: "mdi-chart-bar", to: "/anken-list" },
+  { title: "Anken List", icon: "mdi-format-list-numbered", to: "/anken-list" },
   { title: "Account-Category", icon: "mdi-account-group", to: "/acc-cate" },
   {
     title: "Campaign-Category",
     icon: "mdi-package-variant-closed",
     to: "/cam-cate",
   },
-  { title: "Import/Export File", icon: "mdi-cart", to: "/import-export-file" },
-  { title: "Settings", icon: "mdi-cog", to: "/settings" },
+  {
+    title: "Upload/Download File",
+    icon: "mdi-file-excel",
+    to: "/import-export-file",
+  },
+  {
+    title: "Upload File History",
+    icon: "mdi-history",
+    to: "/upload-file-history",
+  },
+  { title: "Account", icon: "mdi-account", to: "/account" },
+  { title: "Logout", icon: "mdi-logout" },
 ];
 
 const toggleDrawer = () => {

@@ -1,17 +1,22 @@
 <template>
-  <v-btn color="primary" @click="exportFileExcelFunction">
-    Export Data to Excel
+  <v-btn color="secondary" @click="exportFileExcelCustomFunction">
+    <pre>Export Data to Excel </pre>
+    <v-icon icon="mdi-cloud-download"> </v-icon>
   </v-btn>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { exportFileExcel, exportFileExcelCustom } from "@/api/api";
 import { defineProps } from "vue";
-import { exportFileExcel } from "@/api/api";
-const exportFileExcelFunction = async () => {
+const props = defineProps(["ankenList"]);
+
+const exportFileExcelCustomFunction = async () => {
   try {
-    const response = await exportFileExcel();
-    console.log(response);
+    const formData = {
+      ids: props.ankenList,
+    };
+    const response = await exportFileExcelCustom(formData);
+    console.log(formData);
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;

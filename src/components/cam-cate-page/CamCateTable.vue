@@ -58,7 +58,7 @@
 import { ref, onMounted } from "vue";
 import {
   getAllCategoryCampaign,
-  updateAccountCategoryDetails,
+  updateCategoryBindingDetails,
   deleteCategoryBinding,
 } from "@/api/api";
 import axios from "axios";
@@ -145,7 +145,7 @@ const closeEdit = () => {
 
 const updateItem = async (formData) => {
   try {
-    const response = await updateAccountCategoryDetails({
+    const response = await updateCategoryBindingDetails({
       categoryId: formData.categoryId,
       entityId: formData.campaignId,
       entityType: "CAMPAIGN",
