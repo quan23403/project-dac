@@ -51,7 +51,12 @@
                 >
                   Forgot Password?
                 </v-btn>
-                <v-btn variant="text"> Sign Up </v-btn>
+                <v-btn
+                  @click="this.$router.push({ name: 'Register' })"
+                  variant="text"
+                >
+                  Sign Up
+                </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -67,12 +72,14 @@
 <script setup>
 import { ref, reactive } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
 const form = ref(null);
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
 const isLoading = ref(false);
+const router = useRouter();
 const snackbar = reactive({
   show: false,
   text: "",
@@ -82,7 +89,7 @@ const snackbar = reactive({
 const rules = {
   required: (v) => !!v || "This field is required",
   email: (v) => /.+@.+\..+/.test(v) || "Please enter a valid email",
-  minLength: (v) => v.length >= 8 || "Password must be at least 8 characters",
+  minLength: (v) => v.length >= 6 || "Password must be at least 8 characters",
 };
 
 const showSnackbar = (text, color = "info") => {
@@ -96,13 +103,14 @@ const useAuth = () => {
     try {
       isLoading.value = true;
       // Replace with your actual API endpoint
-      const response = await axios.post("https://api.example.com/login", {
+      const response = await axios.post("http://localhost:8080/log-in", {
         email,
         password,
       });
       const token = response.data.token;
       localStorage.setItem("token", token);
       showSnackbar("Login successful", "success");
+      router.push({ name: "Home" }); // Redirect after successful login
       // Add your post-login logic here (e.g., redirect to dashboard)
     } catch (error) {
       console.error("Login error:", error);

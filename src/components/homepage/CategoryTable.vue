@@ -1,15 +1,28 @@
 <template>
   <v-card class="mt-5">
-    <v-card-title>
-      Category
-      <v-spacer></v-spacer>
+    <v-card-title class="d-flex align-center">
+      <!-- Cột tìm kiếm -->
       <v-text-field
         v-model="search"
         append-icon="mdi-magnify"
         label="Search"
-        single-line
+        outlined
         hide-details
+        class="mr-6"
+        dense
+        style="max-width: 300px"
       ></v-text-field>
+
+      <!-- Dropdown chọn loại category -->
+      <v-select
+        v-model="search"
+        :items="typeCategoryOptions"
+        label="Category"
+        outlined
+        dense
+        class="mt-5"
+        style="max-width: 200px"
+      ></v-select>
     </v-card-title>
     <v-data-table :headers="headers" :items="categories" :search="search">
       <template v-slot:top>
@@ -18,7 +31,10 @@
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <!-- New Category Dialog -->
-          <NewCategoryDialog @create-success="needReload = true" />
+          <NewCategoryDialog
+            @create-success="needReload = true"
+            :options="ankenOptions"
+          />
 
           <v-dialog v-model="dialogEdit" max-width="500px">
             <v-card>
@@ -34,12 +50,11 @@
                 ></v-text-field>
 
                 <!-- Trường Type Category -->
-                <v-select
+                <v-text-field
                   v-model="editedItem.typeCategory"
-                  :items="typeCategoryOptions"
-                  label="Type"
-                  required
-                ></v-select>
+                  label="Type of Category"
+                  readonly
+                ></v-text-field>
 
                 <!-- Trường Budget -->
                 <v-text-field
@@ -55,6 +70,7 @@
                   label="Start Date"
                   variant="outlined"
                   persistent-placeholder
+                  format="yyyy-MM-dd"
                 ></v-date-input>
 
                 <!-- Trường End Date -->
@@ -63,6 +79,7 @@
                   label="End Date"
                   variant="outlined"
                   persistent-placeholder
+                  format="yyyy-MM-dd"
                 ></v-date-input>
 
                 <!-- Trường KPI Type -->
@@ -70,6 +87,13 @@
                   v-model="editedItem.kpiType"
                   :items="kpiTypeOptions"
                   label="Types of KPI"
+                  required
+                ></v-select>
+
+                <v-select
+                  v-model="editedItem.ankenName"
+                  :items="ankenOptions.map((option) => option.name)"
+                  label="Anken Name"
                   required
                 ></v-select>
 
@@ -133,26 +157,32 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
-import axios from "axios";
+import { ref, watch, onMounted, computed } from "vue";
 import NewCategoryDialog from "./dialog/NewCategoryDialog.vue";
-import { updateCategory, deleteCategory } from "@/api/api";
+import {
+  updateCategory,
+  deleteCategory,
+  getAllAnken,
+  getCategory,
+  getAnkenByUser,
+} from "@/api/api";
 
-const search = ref("");
+const search = ref();
 const dialogDelete = ref(false);
 const dialogEdit = ref(false);
 const categories = ref();
 const errorMsg = ref("");
 const needReload = ref(false);
-
+const ankenOptions = ref();
 const headers = [
+  { title: "Anken Name", align: "start", key: "ankenName" },
   { title: "Name", align: "start", key: "name" },
   { title: "Type Category", key: "typeCategory" },
   { title: "Budget", key: "budget" },
-  { title: "Start Date", key: "startDate" },
-  { title: "End Date", key: "endDate" },
   { title: "KPI Type", key: "kpiType" },
   { title: "KPI Goal", key: "kpiGoal" },
+  { title: "Start Date", key: "startDate" },
+  { title: "End Date", key: "endDate" },
   { title: "Action", key: "actions" },
 ];
 
@@ -161,7 +191,7 @@ const kpiTypeOptions = ["IMP", "CPC", "CPV"];
 
 const fetchCategories = async () => {
   try {
-    const response = await axios.get("http://localhost:8080/category");
+    const response = await getCategory();
     // Xử lý dữ liệu ngày tháng khi nhận từ API
     categories.value = response.data.map((category) => {
       // Chuyển mảng ngày tháng thành đối tượng Date
@@ -190,7 +220,25 @@ const fetchCategories = async () => {
     console.error("Lỗi khi lấy thông tin:", error);
   }
 };
+
+const getAllAnkenFunction = async () => {
+  try {
+    const response = await getAnkenByUser();
+    ankenOptions.value = response.data;
+  } catch (error) {
+    // Xử lý lỗi
+    if (error.response) {
+      // Nếu có phản hồi từ server
+      errorMsg.value = `Lấy Anken Name thất bại:
+          ${error.response.data.message || error.message}`;
+    } else {
+      errorMsg.value = `Lấy Anken Name thất bại: ${error.message}`;
+    }
+  }
+};
+
 onMounted(() => {
+  getAllAnkenFunction();
   fetchCategories(); // Gọi hàm lấy thông tin khi component được mount
 });
 
@@ -210,12 +258,19 @@ const editedItem = ref({
   budget: 0,
   kpiType: "",
   kpiGoal: 0,
+  ankenName: "",
 });
 
 const updateCategoryFunction = async () => {
   try {
-    const response = await updateCategory(editedItem.value);
-    console.log(response.data);
+    const formData = { ...editedItem.value };
+    console.log(formData);
+
+    // console.log(formatDate(editedItem.value.startDate));
+    formData.startDate = formatDate(editedItem.value.startDate);
+    formData.endDate = formatDate(editedItem.value.endDate);
+    const response = await updateCategory(formData);
+    console.log(editedItem.value);
     alert("Update Successfully");
     dialogEdit.value = false;
     needReload.value = true;
@@ -233,7 +288,10 @@ const updateCategoryFunction = async () => {
 };
 
 function editItem(item) {
-  editedItem.value = item;
+  const temp = { ...item };
+  temp.startDate = new Date(item.startDate);
+  temp.endDate = new Date(item.endDate);
+  editedItem.value = temp;
   dialogEdit.value = true;
 }
 
