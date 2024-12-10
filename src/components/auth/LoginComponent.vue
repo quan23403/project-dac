@@ -1,72 +1,63 @@
 <template>
-  <div class="login-container">
-    <div class="background-image"></div>
-    <div class="content-wrapper">
-      <v-container class="fill-height" fluid>
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="6" lg="4">
-            <v-card class="login-card">
-              <v-card-title class="text-h4 font-weight-bold text-center my-4">
-                Welcome Back
-              </v-card-title>
-              <v-card-text>
-                <v-form @submit.prevent="handleLogin" ref="form">
-                  <v-text-field
-                    v-model="email"
-                    :rules="[rules.required, rules.email]"
-                    label="Email"
-                    prepend-inner-icon="mdi-email"
-                    variant="outlined"
-                    class="mb-4"
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="password"
-                    :rules="[rules.required, rules.minLength]"
-                    label="Password"
-                    prepend-inner-icon="mdi-lock"
-                    :append-inner-icon="
-                      showPassword ? 'mdi-eye' : 'mdi-eye-off'
-                    "
-                    @click:append-inner="showPassword = !showPassword"
-                    :type="showPassword ? 'text' : 'password'"
-                    variant="outlined"
-                    class="mb-4"
-                  ></v-text-field>
-                  <v-btn
-                    block
-                    color="primary"
-                    size="large"
-                    type="submit"
-                    :loading="isLoading"
-                  >
-                    Sign In
-                  </v-btn>
-                </v-form>
-              </v-card-text>
-              <v-card-actions class="justify-center">
+  <div class="content-wrapper">
+    <v-container class="fill-height" fluid>
+      <v-row align="center" justify="center">
+        <v-col cols="12" sm="8" md="6" lg="4">
+          <v-card class="login-card">
+            <v-card-title class="text-h4 font-weight-bold text-center my-4">
+              Welcome Back
+            </v-card-title>
+            <v-card-text>
+              <v-form @submit.prevent="handleLogin" ref="form">
+                <v-text-field
+                  v-model="email"
+                  :rules="[rules.required, rules.email]"
+                  label="Email"
+                  prepend-inner-icon="mdi-email"
+                  variant="outlined"
+                  class="mb-4"
+                ></v-text-field>
+                <v-text-field
+                  v-model="password"
+                  :rules="[rules.required, rules.minLength]"
+                  label="Password"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="showPassword = !showPassword"
+                  :type="showPassword ? 'text' : 'password'"
+                  variant="outlined"
+                  class="mb-4"
+                ></v-text-field>
                 <v-btn
-                  variant="text"
-                  @click="handleResetPassword"
-                  :disabled="!email || isLoading"
+                  block
+                  color="primary"
+                  size="large"
+                  type="submit"
+                  :loading="isLoading"
                 >
-                  Forgot Password?
+                  Sign In
                 </v-btn>
-                <v-btn
-                  @click="this.$router.push({ name: 'Register' })"
-                  variant="text"
-                >
-                  Sign Up
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </div>
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" location="top">
-      {{ snackbar.text }}
-    </v-snackbar>
+              </v-form>
+            </v-card-text>
+            <v-card-actions class="justify-center">
+              <v-btn variant="text" @click="handleResetPassword">
+                Forgot Password?
+              </v-btn>
+              <v-btn
+                @click="this.$router.push({ name: 'Register' })"
+                variant="text"
+              >
+                Sign Up
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
+  <v-snackbar v-model="snackbar.show" :color="snackbar.color" location="top">
+    {{ snackbar.text }}
+  </v-snackbar>
 </template>
 
 <script setup>
@@ -149,12 +140,8 @@ const handleLogin = async () => {
   }
 };
 
-const handleResetPassword = async () => {
-  if (email.value) {
-    await resetPassword(email.value);
-  } else {
-    showSnackbar("Please enter your email", "warning");
-  }
+const handleResetPassword = () => {
+  router.push({ name: "ForgotPassword" });
 };
 </script>
 
