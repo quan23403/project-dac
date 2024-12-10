@@ -14,21 +14,21 @@
                   :rules="[rules.required]"
                   label="First Name"
                   prepend-inner-icon="mdi-account"
-                  variant="outlined"
+                  variant="filled"
                 ></v-text-field>
                 <v-text-field
                   v-model="lastName"
                   :rules="[rules.required]"
                   label="Last Name"
                   prepend-inner-icon="mdi-account"
-                  variant="outlined"
+                  variant="filled"
                 ></v-text-field>
                 <v-text-field
                   v-model="email"
                   :rules="[rules.required, rules.email]"
                   label="Email"
                   prepend-inner-icon="mdi-email"
-                  variant="outlined"
+                  variant="filled"
                 ></v-text-field>
                 <v-text-field
                   v-model="password"
@@ -38,7 +38,7 @@
                   :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showPassword = !showPassword"
                   :type="showPassword ? 'text' : 'password'"
-                  variant="outlined"
+                  variant="filled"
                 ></v-text-field>
                 <v-text-field
                   v-model="confirmPassword"
@@ -46,7 +46,7 @@
                   label="Confirm Password"
                   prepend-inner-icon="mdi-lock-check"
                   :type="showPassword ? 'text' : 'password'"
-                  variant="outlined"
+                  variant="filled"
                 ></v-text-field>
                 <v-btn
                   block
@@ -167,6 +167,7 @@ const goToLogin = () => {
   background: rgba(255, 255, 255, 0.7) !important;
   border-radius: 16px !important;
   padding: 2rem;
+  backdrop-filter: blur(10px);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
