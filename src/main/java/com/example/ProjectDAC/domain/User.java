@@ -1,6 +1,7 @@
 package com.example.ProjectDAC.domain;
 
 import com.example.ProjectDAC.domain.dto.ForgotPassword;
+import com.example.ProjectDAC.util.constant.EProvider;
 import com.example.ProjectDAC.util.constant.EStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name="user")
@@ -25,12 +27,15 @@ public class User {
 
     @NotBlank(message =  "Email không được để trống")
     private String email;
-    @NotBlank(message =  "Password không được để trống")
     private String password;
     private String firstName;
     private String lastName;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private Set<String> roles;
+
+    @Enumerated(EnumType.STRING)
+    private EProvider provider;
 
     @Enumerated(EnumType.STRING)
     private EStatus status;

@@ -403,6 +403,9 @@ public class ExcelService {
 
                 row.createCell(table1.get("Anken Name")).setCellValue(data.getAnkenName());
                 row.createCell(table1.get("Category Id")).setCellValue(data.getCategoryId());
+
+                System.out.println(data.getCategoryId());
+
                 row.createCell(table1.get("Category Name")).setCellValue(data.getCategoryName());
                 row.createCell(table1.get("Budget")).setCellValue(data.getBudget());
                 row.createCell(table1.get("KPI Goal")).setCellValue(data.getKpiGoal());

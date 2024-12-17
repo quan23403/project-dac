@@ -44,16 +44,20 @@ public class UserService {
         resUserDTO.setCreatedAt(user.getCreatedAt());
         resUserDTO.setUpdatedAt(user.getUpdatedAt());
         resUserDTO.setAnkenListId(this.getAnkenIdsFromUser(user.getId()));
+        resUserDTO.setRoles(user.getRoles());
         return resUserDTO;
     }
 
-    public User updateUser(UpdateUserRequest request) throws IdInvalidException {
-        User userInDb = this.getUserFromSecurityContext();
-
+    public User updateUser(UpdateUserRequest request, long userId) throws IdInvalidException {
+        Optional<User> optionalUser = this.userRepository.findById(userId);
+        if(optionalUser.isEmpty()) {
+            throw new IdInvalidException("User does not exist!!");
+        }
+        User userInDb = optionalUser.get();
         userInDb.setFirstName(request.getFirstName());
         userInDb.setLastName(request.getLastName());
-
-        if(request.getListAnkenId().isEmpty()) {
+        userInDb.setRoles(request.getRoles());
+        if(request.getListAnkenId() == null) {
             userInDb.setAnkenList(null);
         }
         else {
@@ -72,9 +76,11 @@ public class UserService {
         if(userOptional.isEmpty()) {
             throw new IdInvalidException("User does not exist");
         }
-        List<Long> ids = userOptional.get().getAnkenList().stream()
+        if(userOptional.get().getAnkenList() == null) {
+            return null;
+        }
+        return userOptional.get().getAnkenList().stream()
                 .map(Anken::getId).toList();
-        return ids;
     }
     public List<Long> getAnkenListFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -106,5 +112,17 @@ public class UserService {
 
     public void resetPassword(User user) {
         userRepository.save(user);
+    }
+
+    public List<ResUserDTO> getAllUser() {
+        List<User> users = this.userRepository.findAll();
+        return users.stream().map(user -> {
+                    try {
+                        return this.convertUserToResUserDTO(user);
+                    } catch (IdInvalidException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }
