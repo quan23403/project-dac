@@ -1,6 +1,8 @@
 package com.example.ProjectDAC.domain;
 
+import com.example.ProjectDAC.domain.dto.ForgotPassword;
 import com.example.ProjectDAC.util.constant.EStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -36,6 +38,13 @@ public class User {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_anken", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "anken_id"))
     List<Anken> ankenList;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
+    List<FileUpload> fileUploads;
+
+    @OneToOne(mappedBy = "user")
+    private ForgotPassword forgotPassword;
 
     @PrePersist
     public void handleBeforeCreate() {

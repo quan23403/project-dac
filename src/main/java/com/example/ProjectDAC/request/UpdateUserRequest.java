@@ -8,8 +8,6 @@ import java.util.List;
 @Getter
 @Setter
 public class UpdateUserRequest {
-    private long id;
-    private String email;
     private String firstName;
     private String lastName;
     private List<Long> listAnkenId;

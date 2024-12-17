@@ -32,4 +32,8 @@ public class AnkenService {
     public Optional<Anken> getAnkenById(Long id) {
         return this.ankenRepository.findById(id);
     }
+
+    public List<Anken> getAllAnken() {
+        return this.ankenRepository.findAll();
+    }
 }

@@ -47,8 +47,8 @@ public class UserService {
         return resUserDTO;
     }
 
-    public ResUserDTO updateUser(UpdateUserRequest request) throws IdInvalidException {
-        User userInDb = this.userRepository.findByEmail(request.getEmail());
+    public User updateUser(UpdateUserRequest request) throws IdInvalidException {
+        User userInDb = this.getUserFromSecurityContext();
 
         userInDb.setFirstName(request.getFirstName());
         userInDb.setLastName(request.getLastName());
@@ -64,8 +64,7 @@ public class UserService {
             }
             userInDb.setAnkenList(ankenList);
         }
-        User updatedUser = this.userRepository.save(userInDb);
-        return this.convertUserToResUserDTO(updatedUser);
+        return this.userRepository.save(userInDb);
     }
 
     public List<Long> getAnkenIdsFromUser(long id) throws IdInvalidException {
@@ -89,5 +88,19 @@ public class UserService {
             }
         }
         return Collections.emptyList();  // Hoặc xử lý trường hợp không có roles
+    }
+
+    public User getUserFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof Jwt) {
+                Jwt jwt = (Jwt) principal;
+                Map<String, Object> userMap = jwt.getClaim("user");
+                Optional<User> user = this.userRepository.findById((Long) userMap.get("id"));
+                return user.orElse(null);
+            }
+        }
+        return null;
     }
 }
