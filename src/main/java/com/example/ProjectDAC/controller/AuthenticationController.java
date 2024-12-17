@@ -17,9 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AuthenticationController {
@@ -64,7 +62,7 @@ public class AuthenticationController {
 
             // Log success information
             System.out.println("Log in success");
-            System.out.println(jwtUtils.getUsernameFromToken(token));
+//            System.out.println(jwtUtils.getUsernameFromToken(token));
 
             return ResponseEntity.status(HttpStatus.OK).body(result);
         } catch (AuthenticationException e) {
@@ -92,5 +90,19 @@ public class AuthenticationController {
         user.setPassword(hashPassword);
         ResUserDTO newUser = this.userService.create(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+    }
+
+    @GetMapping("/api/resource")
+    public ResponseEntity<?> getResource(@RequestHeader(value = "Authorization") String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            // Lấy phần token sau "Bearer "
+            String token = authorizationHeader.substring(7);  // Loại bỏ "Bearer "
+            // Tiến hành xử lý token ở đây
+            System.out.println("Token: " + token);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token không hợp lệ");
+        }
+
+        return ResponseEntity.ok("Token hợp lệ");
     }
 }

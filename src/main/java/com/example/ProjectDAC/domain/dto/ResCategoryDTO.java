@@ -1,5 +1,6 @@
 package com.example.ProjectDAC.domain.dto;
 
+import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.util.constant.EKpiType;
 import com.example.ProjectDAC.util.constant.EStatus;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
@@ -28,5 +29,6 @@ public class ResCategoryDTO {
     @Enumerated(EnumType.STRING)
     private EKpiType kpiType;
     private long kpiGoal;
+    private long ankenId;
     private String ankenName;
 }

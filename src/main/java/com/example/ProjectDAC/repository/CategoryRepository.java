@@ -14,7 +14,9 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsByName(String name);
-    List<Category> findByStatus(EStatus status);
+
+
+    List<Category> findByStatusAndAnkenIdIn(EStatus status, List<Long> ids);
 
     @Query("select count(c) from Category c where c.name = ?1 and c.id != ?2")
     long checkNameCategory(String email, long id);

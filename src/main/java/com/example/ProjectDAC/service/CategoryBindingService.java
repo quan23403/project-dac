@@ -28,14 +28,25 @@ public class CategoryBindingService {
         this.campaignService = campaignService;
     }
 
-    public CategoryBinding create(CategoryBindingRequest request) throws IdInvalidException {
+    public CategoryBinding create(CategoryBindingRequest request, List<Long> ids) throws IdInvalidException {
         Optional<Category> category = this.categoryService.getCategory(request.getCategoryId());
         if (category.isEmpty()) {
             throw new IdInvalidException("Category does not exist");
         }
+        if(category.get().getAnken() == null) {
+            throw new IdInvalidException("You do not have permission with this Category");
+        }
+
+        long ankenId = category.get().getAnken().getId();
+        if(ids == null || !ids.contains(ankenId)) {
+            throw new IdInvalidException("You do not have permission with this Category");
+        }
         if(request.getEntityType() == ETypeCategory.ACCOUNT) {
             if(!this.accountService.isExistedAccountById(request.getEntityId())) {
                 throw new IdInvalidException("Account ID does not exist");
+            }
+            if(!this.accountService.checkPermission(request.getEntityId(), ids)) {
+                throw new IdInvalidException("You do not have permission with this account");
             }
             if(this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), request.getEntityType())) {
                 return this.update(request);
@@ -44,6 +55,9 @@ public class CategoryBindingService {
         if(request.getEntityType() == ETypeCategory.CAMPAIGN) {
             if(!this.campaignService.isExistedCampaignById(request.getEntityId())) {
                 throw new IdInvalidException("Campaign ID does not exist");
+            }
+            if(!this.campaignService.checkPermission(request.getEntityId(), ids)) {
+                throw new IdInvalidException("You do not have permission with this campaign");
             }
             if(this.categoryBindingRepository.existsByEntityIdAndEntityType(request.getEntityId(), request.getEntityType())) {
                 return this.update(request);
@@ -56,7 +70,23 @@ public class CategoryBindingService {
         return this.categoryBindingRepository.save(categoryBinding);
     }
 
-    public void deleteCategoryBinding(long entityId, ETypeCategory entityType) throws IdInvalidException {
+    public void deleteCategoryBinding(long entityId, ETypeCategory entityType, List<Long> ids) throws IdInvalidException {
+        if(entityType == ETypeCategory.ACCOUNT) {
+            if(!this.accountService.isExistedAccountById(entityId)) {
+                throw new IdInvalidException("Account ID does not exist");
+            }
+            if(!this.accountService.checkPermission(entityId, ids)) {
+                throw new IdInvalidException("You do not have permission with this account");
+            }
+        }
+        if(entityType == ETypeCategory.CAMPAIGN) {
+            if(!this.campaignService.isExistedCampaignById(entityId)) {
+                throw new IdInvalidException("Campaign ID does not exist");
+            }
+            if(!this.campaignService.checkPermission(entityId, ids)) {
+                throw new IdInvalidException("You do not have permission with this campaign");
+            }
+        }
         CategoryBinding categoryBinding = this.categoryBindingRepository.findByEntityIdAndEntityType(entityId, entityType);
         if(categoryBinding == null) {
             throw new IdInvalidException("Account-Category not found");
@@ -74,8 +104,8 @@ public class CategoryBindingService {
         return this.categoryBindingRepository.save(categoryBinding);
     }
 
-    public List<AccountCategoryDTO> getAccountCategoryDetails() {
-        List<Object[]> results = categoryBindingRepository.findAccountCategoryDetailsRaw();
+    public List<AccountCategoryDTO> getAccountCategoryDetails(List<Long> ids) {
+        List<Object[]> results = categoryBindingRepository.findAccountCategoryDetailsRaw(ids);
         List<AccountCategoryDTO> dtos = new ArrayList<>();
 
         for (Object[] result : results) {
@@ -92,8 +122,8 @@ public class CategoryBindingService {
         return dtos;
     }
 
-    public List<CampaignCategoryDTO> getCampaignCategoryDetails() {
-        List<Object[]> results = categoryBindingRepository.findCampaignCategoryDetailsRaw();
+    public List<CampaignCategoryDTO> getCampaignCategoryDetails(List<Long> ids) {
+        List<Object[]> results = categoryBindingRepository.findCampaignCategoryDetailsRaw(ids);
         List<CampaignCategoryDTO> dtos = new ArrayList<>();
 
         for (Object[] result : results) {
