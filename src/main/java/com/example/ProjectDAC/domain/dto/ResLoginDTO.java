@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -15,4 +16,5 @@ public class ResLoginDTO {
     private String lastName;
     private List<Anken> ankenList;
     private String token;
+    private Set<String> roles;
 }

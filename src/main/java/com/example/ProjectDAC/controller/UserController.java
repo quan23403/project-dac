@@ -8,6 +8,7 @@ import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateUserRequest;
 import com.example.ProjectDAC.service.UserService;
 import com.example.ProjectDAC.util.JwtUtils;
+import com.example.ProjectDAC.util.constant.ERole;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import org.apache.xmlbeans.impl.xb.xsdschema.Attribute;
@@ -19,7 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import javax.management.relation.Role;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -46,20 +49,36 @@ public class UserController {
         }
         String hashPassword = this.passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);
+
+        HashSet<String> roles = new HashSet<>();
+        roles.add(ERole.USER.name());
+        user.setRoles(roles);
         ResUserDTO newUser = this.userService.create(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
-    @PutMapping("/user")
-    public ResponseEntity<ResLoginDTO> update(@RequestBody UpdateUserRequest request) throws IdInvalidException, JsonProcessingException {
-        User user = this.userService.updateUser(request);
-        String token = this.jwtUtils.generateToken(user);
+//    @PutMapping("/user")
+//    public ResponseEntity<ResLoginDTO> update(@RequestBody UpdateUserRequest request) throws IdInvalidException, JsonProcessingException {
+//        User user = this.userService.updateUser(request, id);
+//        String token = this.jwtUtils.generateToken(user);
+//        ResLoginDTO resLoginDTO = new ResLoginDTO();
+//        resLoginDTO.setId(user.getId());
+//        resLoginDTO.setFirstName(user.getFirstName());
+//        resLoginDTO.setLastName(user.getLastName());
+//        resLoginDTO.setAnkenList(user.getAnkenList());
+//        resLoginDTO.setToken(token);
+//        return ResponseEntity.status(HttpStatus.OK).body(resLoginDTO);
+//    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<ResLoginDTO> updateUser(@RequestBody UpdateUserRequest request, @PathVariable long id) throws IdInvalidException, JsonProcessingException {
+        User user = this.userService.updateUser(request, id);
         ResLoginDTO resLoginDTO = new ResLoginDTO();
         resLoginDTO.setId(user.getId());
         resLoginDTO.setFirstName(user.getFirstName());
         resLoginDTO.setLastName(user.getLastName());
         resLoginDTO.setAnkenList(user.getAnkenList());
-        resLoginDTO.setToken(token);
+        resLoginDTO.setRoles(user.getRoles());
         return ResponseEntity.status(HttpStatus.OK).body(resLoginDTO);
     }
 
@@ -67,5 +86,10 @@ public class UserController {
     public ResUserDTO getRolesFromSecurityContext() throws IdInvalidException {
         User user = this.userService.getUserFromSecurityContext();
         return this.userService.convertUserToResUserDTO(user);
+    }
+
+    @GetMapping("/user")
+    public List<ResUserDTO> getAllUser() {
+        return this.userService.getAllUser();
     }
 }
