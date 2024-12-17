@@ -2,7 +2,7 @@ package com.example.ProjectDAC.controller;
 
 import com.example.ProjectDAC.domain.User;
 import com.example.ProjectDAC.error.IdInvalidException;
-import com.example.ProjectDAC.response.ResUserDTO;
+import com.example.ProjectDAC.domain.dto.ResUserDTO;
 import com.example.ProjectDAC.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -30,7 +30,7 @@ public class UserController {
     public ResponseEntity<ResUserDTO> createUser(@Valid @RequestBody User user) throws IdInvalidException {
         boolean isEmailExist = this.userService.isEmailExist(user.getEmail());
         if(isEmailExist) {
-            throw new IdInvalidException("Email da ton tai" );
+            throw new IdInvalidException("Email already exists" );
         }
         String hashPassword = this.passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);

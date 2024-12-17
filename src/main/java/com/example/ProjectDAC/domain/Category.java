@@ -3,6 +3,9 @@ package com.example.ProjectDAC.domain;
 import com.example.ProjectDAC.util.constant.EKpiType;
 import com.example.ProjectDAC.util.constant.EStatus;
 import com.example.ProjectDAC.util.constant.ETypeCategory;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +15,7 @@ import lombok.Setter;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name="category")
@@ -28,7 +32,7 @@ public class Category {
     @NotNull(message = "Type khong duoc de trong")
     @Enumerated(EnumType.STRING)
     private ETypeCategory typeCategory;
-    private long budget;
+    private double budget;
     private LocalDate startDate;
     private LocalDate endDate;
 
@@ -40,6 +44,15 @@ public class Category {
 
     @Enumerated(EnumType.STRING)
     private EStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anken_id")
+    @JsonIgnore
+    private Anken anken;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    @JsonIgnore
+    List<CategoryBinding> categoryBindings;
 
     @PrePersist
     public void handleBeforeCreate() {

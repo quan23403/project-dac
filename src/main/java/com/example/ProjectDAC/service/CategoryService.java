@@ -1,41 +1,94 @@
 package com.example.ProjectDAC.service;
 
+import com.example.ProjectDAC.domain.Anken;
 import com.example.ProjectDAC.domain.Category;
+import com.example.ProjectDAC.domain.dto.ResCategoryDTO;
 import com.example.ProjectDAC.error.IdInvalidException;
+import com.example.ProjectDAC.repository.AnkenRepository;
 import com.example.ProjectDAC.repository.CategoryRepository;
+import com.example.ProjectDAC.request.CreateCategoryRequest;
 import com.example.ProjectDAC.request.UpdateCategoryRequest;
 import com.example.ProjectDAC.util.constant.EStatus;
-import jakarta.validation.Valid;
+import com.example.ProjectDAC.util.constant.ETypeCategory;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
     private final CategoryRepository categoryRepository;
-    public CategoryService(CategoryRepository categoryRepository) {
+    private final AnkenRepository ankenRepository;
+    private final AnkenService ankenService;
+    public CategoryService(CategoryRepository categoryRepository, AnkenRepository ankenRepository, AnkenService ankenService) {
         this.categoryRepository = categoryRepository;
+        this.ankenRepository = ankenRepository;
+        this.ankenService = ankenService;
     }
-    public Category create(@Valid @RequestBody Category category) {
+    public Category create(CreateCategoryRequest request) throws IdInvalidException {
+        Category category = new Category();
+        if(request.getAnkenName() != null) {
+            Anken anken = this.ankenRepository.findByName(request.getAnkenName());
+            if(anken == null) {
+                Anken newAnken = new Anken();
+                newAnken.setName(request.getAnkenName());
+                anken = this.ankenService.create(newAnken);
+            }
+            category.setAnken(anken);
+        }
+        category.setName(request.getName());
+        category.setTypeCategory(request.getTypeCategory());
+        category.setBudget(request.getBudget());
+        category.setKpiGoal(request.getKpiGoal());
+        category.setKpiType(request.getKpiType());
+        category.setStartDate(request.getStartDate());
+        category.setEndDate(request.getEndDate());
+
         return this.categoryRepository.save(category);
     }
 
-    public boolean isExistCategory(String name) {
+    public boolean isExistedCategoryByName(String name) {
         return this.categoryRepository.existsByName(name);
     }
 
-//    public boolean isExistCategoryByNameAndId(String name, long id) {
-//        return this.categoryRepository.existsNameAndNotId(name, id);
-//    }
-
-    public List<Category> getCategories() {
-        return this.categoryRepository.findByStatus(EStatus.ACTIVE);
+    public boolean isExistedCategoryById(long id) {
+        return this.categoryRepository.existsById(id);
     }
 
+    public ResCategoryDTO convertCategory(Category category) {
+        ResCategoryDTO res = new ResCategoryDTO();
+        res.setId(category.getId());
+        res.setName(category.getName());
+        res.setBudget(category.getBudget());
+        res.setStartDate(category.getStartDate());
+        res.setEndDate(category.getEndDate());
+        res.setTypeCategory(category.getTypeCategory());
+        res.setKpiGoal(category.getKpiGoal());
+        res.setKpiType(category.getKpiType());
+        if(category.getAnken() != null) {
+            res.setAnkenName(category.getAnken().getName());
+        }
+        return res;
+    }
+    public List<ResCategoryDTO> getCategories() {
+        return this.categoryRepository.findByStatus(EStatus.ACTIVE)
+                .stream().map(this::convertCategory)
+                .collect(Collectors.toList());
+    }
+
+    public List<ResCategoryDTO> getCategoriesByCategoryType(ETypeCategory typeCategory) {
+        return this.categoryRepository.findByStatusAndTypeCategory(EStatus.ACTIVE, typeCategory)
+                .stream().map(this::convertCategory)
+                .collect(Collectors.toList());
+    }
     public Optional<Category> getCategory(long id) {
         return this.categoryRepository.findById(id);
+    }
+
+    public Category getCategoryByName(String name) {
+        return this.categoryRepository.findByName(name);
     }
 
     public Category updateCategory(UpdateCategoryRequest request, Category category) throws IdInvalidException {
@@ -49,6 +102,15 @@ public class CategoryService {
         category.setEndDate(request.getEndDate());
         category.setKpiType(request.getKpiType());
         category.setKpiGoal(request.getKpiGoal());
+        if(request.getAnkenName() != null) {
+            Anken anken = this.ankenRepository.findByName(request.getAnkenName());
+            if(anken == null) {
+                Anken newAnken = new Anken();
+                newAnken.setName(request.getAnkenName());
+                anken = this.ankenService.create(newAnken);
+            }
+            category.setAnken(anken);
+        }
         return this.categoryRepository.save(category);
     }
 
@@ -56,4 +118,31 @@ public class CategoryService {
         category.setStatus(EStatus.DELETED);
         this.categoryRepository.save(category);
     }
+
+    @Transactional
+    public void deleteCategoryByName(String name) {
+        this.categoryRepository.deleteByName(name);
+    }
+
+    public void updateCategoryByName(UpdateCategoryRequest updateCategory) {
+        Category categoryInDB = categoryRepository.findByName(updateCategory.getName());
+//        if(categoryInDB.getTypeCategory() != updateCategory.getTypeCategory()) {
+//            return null;
+//        }
+        Anken anken = this.ankenRepository.findByName(updateCategory.getAnkenName());
+        if(anken == null) {
+            Anken newAnken = new Anken();
+            newAnken.setName(updateCategory.getAnkenName());
+            anken = this.ankenService.create(newAnken);
+        }
+        categoryInDB.setAnken(anken);
+        categoryInDB.setBudget(updateCategory.getBudget());
+        categoryInDB.setKpiType(updateCategory.getKpiType());
+        categoryInDB.setKpiGoal(updateCategory.getKpiGoal());
+        categoryInDB.setStartDate(updateCategory.getStartDate());
+        categoryInDB.setEndDate(updateCategory.getEndDate());
+
+        this.categoryRepository.save(categoryInDB);
+    }
+
 }
