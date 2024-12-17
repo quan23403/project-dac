@@ -5,7 +5,10 @@
         <v-col cols="12" sm="8" md="6" lg="4">
           <v-card class="forgot-password-card">
             <v-toolbar color="primary" dark flat>
-              <v-toolbar-title>Quên mật khẩu</v-toolbar-title>
+              <v-toolbar-title>Forgot Password</v-toolbar-title>
+              <v-btn @click="backToLogin" style="font-size: medium">
+                Back to Login
+              </v-btn>
             </v-toolbar>
             <v-card-text>
               <v-stepper v-model="currentStep" alt-labels>
@@ -19,10 +22,7 @@
 
                 <v-stepper-window>
                   <v-stepper-window-item value="1">
-                    <v-form
-                      @submit.prevent="submitEmail"
-                      v-model="isEmailValid"
-                    >
+                    <v-form v-model="isEmailValid">
                       <v-text-field
                         v-model="email"
                         :rules="emailRules"
@@ -41,7 +41,7 @@
                   </v-stepper-window-item>
 
                   <v-stepper-window-item value="2">
-                    <v-form @submit.prevent="submitOTP" v-model="isOTPValid">
+                    <v-form v-model="isOTPValid">
                       <v-text-field
                         v-model="otp"
                         :rules="otpRules"
@@ -60,10 +60,7 @@
                   </v-stepper-window-item>
 
                   <v-stepper-window-item value="3">
-                    <v-form
-                      @submit.prevent="submitNewPassword"
-                      v-model="isPasswordValid"
-                    >
+                    <v-form v-model="isPasswordValid">
                       <v-text-field
                         v-model="newPassword"
                         :rules="passwordRules"
@@ -195,6 +192,10 @@ const showErrorMessage = (msg) => {
   message.value = msg;
   messageColor.value = "error";
   showMessage.value = true;
+};
+
+const backToLogin = () => {
+  router.push({ name: "Login" });
 };
 </script>
 

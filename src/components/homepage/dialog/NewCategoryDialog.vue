@@ -78,6 +78,14 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-snackbar v-model="snackbar" timeout="2000">
+    {{ text }}
+    <template v-slot:actions>
+      <v-btn color="blue" variant="text" @click="snackbar = false">
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script setup>
@@ -93,6 +101,8 @@ const props = defineProps({
   },
 });
 
+const snackbar = ref(false);
+const text = ref();
 const dialog = ref(false);
 const errorMsg = ref("");
 const typeCategoryOptions = ["ACCOUNT", "CAMPAIGN"];
@@ -112,7 +122,8 @@ const createCategoryFunction = async () => {
   try {
     const response = await createCategory(newItem.value);
     console.log(response.data);
-    alert("Create Successfully");
+    snackbar.value = true;
+    text.value = "Create Successfully";
     dialog.value = false;
     emit("create-success");
   } catch (error) {

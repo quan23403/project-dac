@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card class="mx-auto" max-width="800">
+    <v-card variant="text" class="mx-auto" max-width="800">
       <v-card-title class="text-h4 font-weight-bold">
         Upload History
       </v-card-title>

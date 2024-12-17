@@ -19,7 +19,6 @@
                 ></v-text-field>
                 <v-text-field
                   v-model="password"
-                  :rules="[rules.required, rules.minLength]"
                   label="Password"
                   prepend-inner-icon="mdi-lock"
                   :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
@@ -37,6 +36,7 @@
                 >
                   Sign In
                 </v-btn>
+                <v-btn @click="loginWithGoogle"> Login with Google </v-btn>
               </v-form>
             </v-card-text>
             <v-card-actions class="justify-center">
@@ -64,7 +64,9 @@
 import { ref, reactive } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 
+const store = useStore();
 const form = ref(null);
 const email = ref("");
 const password = ref("");
@@ -100,6 +102,9 @@ const useAuth = () => {
       });
       const token = response.data.token;
       localStorage.setItem("token", token);
+      console.log(store);
+      // store.dispatch("login", token);
+      // console.log(store.getters.email);
       showSnackbar("Login successful", "success");
       router.push({ name: "Home" }); // Redirect after successful login
       // Add your post-login logic here (e.g., redirect to dashboard)
@@ -111,28 +116,24 @@ const useAuth = () => {
     }
   };
 
-  const resetPassword = async (email) => {
-    try {
-      isLoading.value = true;
-      // Replace with your actual API endpoint
-      await axios.post("https://api.example.com/reset-password", { email });
-      showSnackbar("Password reset email sent", "success");
-    } catch (error) {
-      console.error("Password reset error:", error);
-      showSnackbar(
-        error.response?.data?.message || "Password reset failed",
-        "error"
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  return { login, resetPassword };
+  return { login };
 };
 
-const { login, resetPassword } = useAuth();
+const { login } = useAuth();
 
+const loginWithGoogle = async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/google/login-url");
+    console.log(response.data);
+    window.location.href = response.data;
+  } catch (error) {
+    console.error("Password reset error:", error);
+    showSnackbar(
+      error.response?.data?.message || "Password reset failed",
+      "error"
+    );
+  }
+};
 const handleLogin = async () => {
   const { valid } = await form.value.validate();
   if (valid) {

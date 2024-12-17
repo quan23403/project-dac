@@ -15,10 +15,11 @@ import { ref } from "vue";
 import SideNavigation from "@/components/homepage/SideNavigation.vue";
 import TopBar from "@/components/homepage/TopBar.vue";
 
-const drawer = ref(null);
+const drawer = ref(false);
 
 const navigationItems = [
   { title: "Category", icon: "mdi-view-dashboard", to: "/" },
+  { title: "Users Management", icon: "mdi-view-dashboard", to: "/users" },
   { title: "Anken List", icon: "mdi-format-list-numbered", to: "/anken-list" },
   { title: "Account-Category", icon: "mdi-account-group", to: "/acc-cate" },
   {
@@ -42,6 +43,5 @@ const navigationItems = [
 
 const toggleDrawer = () => {
   drawer.value = !drawer.value;
-  console.log(drawer.value);
 };
 </script>

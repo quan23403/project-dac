@@ -154,6 +154,14 @@
       </template>
     </v-data-table>
   </v-card>
+  <v-snackbar v-model="snackbar" timeout="2000">
+    {{ text }}
+    <template v-slot:actions>
+      <v-btn color="blue" variant="text" @click="snackbar = false">
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script setup>
@@ -167,6 +175,8 @@ import {
   getAnkenByUser,
 } from "@/api/api";
 
+const snackbar = ref(false);
+const text = ref();
 const search = ref();
 const dialogDelete = ref(false);
 const dialogEdit = ref(false);
@@ -215,7 +225,6 @@ const fetchCategories = async () => {
       }
       return category;
     });
-    console.log(categories.value); // Kiểm tra dữ liệu sau khi xử lý
   } catch (error) {
     console.error("Lỗi khi lấy thông tin:", error);
   }
@@ -270,8 +279,9 @@ const updateCategoryFunction = async () => {
     formData.startDate = formatDate(editedItem.value.startDate);
     formData.endDate = formatDate(editedItem.value.endDate);
     const response = await updateCategory(formData);
-    console.log(editedItem.value);
-    alert("Update Successfully");
+    // alert("Update Successfully");
+    snackbar.value = true;
+    text.value = "Update Successfully";
     dialogEdit.value = false;
     needReload.value = true;
   } catch (error) {
@@ -305,7 +315,8 @@ const deleteCategoryFunction = async () => {
   try {
     const response = await deleteCategory(deleteId.value);
     console.log(response.data);
-    alert("Delete Successfully");
+    snackbar.value = true;
+    text.value = "Delete Successfully";
     dialogDelete.value = false;
     needReload.value = true;
   } catch (error) {
