@@ -93,6 +93,23 @@ const routes = [
     name: "ForgotPassword",
     component: () => import("../views/auth/ForgotPasswordView.vue"),
   },
+  {
+    path: "/users",
+    name: "UserManagement",
+    component: () => import("../components/admin/UserManagement.vue"),
+    meta: {
+      layout: MainLayout,
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/callback",
+    name: "Callback",
+    component: () => import("../components/auth/CallBack.vue"),
+    meta: {
+      layout: MainLayout,
+    },
+  },
 ];
 
 const router = createRouter({

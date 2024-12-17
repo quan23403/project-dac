@@ -74,8 +74,12 @@ export const downloadFileUpload = async (fileCode) => {
 };
 
 // User
-export const updateUser = async (formData) => {
-  return await axiosInstance.put("/user", formData);
+export const getAllUsers = async () => {
+  return await axiosInstance.get("/user");
+};
+
+export const updateUser = async (formData, id) => {
+  return await axiosInstance.put(`/user/${id}`, formData);
 };
 
 export const getCurrentUser = async () => {

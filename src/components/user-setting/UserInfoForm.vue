@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card class="mx-auto" max-width="800">
+    <v-card variant="text" class="mx-auto" max-width="800">
       <v-card-title class="text-h4 font-weight-bold">
         User Information
       </v-card-title>
@@ -37,7 +37,7 @@
               item-value="id"
               item-title="name"
               label="Anken"
-              :readonly="!editing"
+              readonly
               multiple
             ></v-select>
           </v-col>
@@ -95,26 +95,26 @@ const fetchAllAnken = async () => {
     ankenList.value = response.data;
     console.log(ankenList.value);
   } catch (error) {
-    errorMsg.value = `Lấy User Info thất bại: ${error.message}`;
+    errorMsg.value = `Lấy Anken List thất bại: ${error.message}`;
   }
 };
 
-const saveUserInfo = async () => {
-  try {
-    const formData = {
-      firstName: user.value.firstName,
-      lastName: user.value.lastName,
-      listAnkenId: user.value.ankenListId,
-    };
-    const response = await updateUser(formData);
-    console.log(response.data);
-    userBackup.value = user.value;
-    localStorage.setItem("token", response.data.token);
-    editing.value = false;
-  } catch (error) {
-    errorMsg.value = `Update User Info thất bại: ${error.message}`;
-  }
-};
+// const saveUserInfo = async () => {
+//   try {
+//     const formData = {
+//       firstName: user.value.firstName,
+//       lastName: user.value.lastName,
+//       listAnkenId: user.value.ankenListId,
+//     };
+//     const response = await updateUser(formData);
+//     console.log(response.data);
+//     userBackup.value = user.value;
+//     localStorage.setItem("token", response.data.token);
+//     editing.value = false;
+//   } catch (error) {
+//     errorMsg.value = `Update User Info thất bại: ${error.message}`;
+//   }
+// };
 
 onMounted(() => {
   getUserInfor();
